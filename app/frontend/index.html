@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Software Factory</title>
+    <meta name="description" content="Autonomous AI-powered software development pipeline">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <!-- Ambient background -->
+    <div class="bg-gradient"></div>
+    <div class="bg-grid"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <span class="logo-icon">⚡</span>
+            <span class="logo-text">AI Software Factory</span>
+        </div>
+        <div class="header-meta" id="header-meta"></div>
+    </header>
+
+    <!-- Pipeline Stepper -->
+    <div class="stepper-container" id="stepper-container" style="display: none;">
+        <div class="stepper">
+            <div class="step" data-step="init">
+                <div class="step-dot"></div>
+                <span class="step-label">Init</span>
+            </div>
+            <div class="step-line" data-after="init"></div>
+            <div class="step" data-step="pm">
+                <div class="step-dot"></div>
+                <span class="step-label">PM</span>
+            </div>
+            <div class="step-line" data-after="pm"></div>
+            <div class="step" data-step="prd_approval">
+                <div class="step-dot"></div>
+                <span class="step-label">PRD Review</span>
+            </div>
+            <div class="step-line" data-after="prd_approval"></div>
+            <div class="step" data-step="dev">
+                <div class="step-dot"></div>
+                <span class="step-label">Dev</span>
+            </div>
+            <div class="step-line" data-after="dev"></div>
+            <div class="step" data-step="qa">
+                <div class="step-dot"></div>
+                <span class="step-label">QA</span>
+            </div>
+            <div class="step-line" data-after="qa"></div>
+            <div class="step" data-step="review_node">
+                <div class="step-dot"></div>
+                <span class="step-label">Review</span>
+            </div>
+            <div class="step-line" data-after="review_node"></div>
+            <div class="step" data-step="build_approval">
+                <div class="step-dot"></div>
+                <span class="step-label">Build Approval</span>
+            </div>
+            <div class="step-line" data-after="build_approval"></div>
+            <div class="step" data-step="done">
+                <div class="step-dot"></div>
+                <span class="step-label">Done</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main">
+
+        <!-- Screen: Start -->
+        <section id="screen-start" class="screen active">
+            <div class="card card-lg fade-in">
+                <div class="card-header">
+                    <h1>🚀 New Project</h1>
+                    <p class="subtitle">Describe your app idea and let AI build it for you</p>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="input-name">Project Name</label>
+                        <input type="text" id="input-name" placeholder="e.g. Expense Tracker" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="input-idea">App Idea</label>
+                        <textarea id="input-idea" rows="5" placeholder="Describe your app idea in detail. What should it do? Who is it for?"></textarea>
+                    </div>
+                    <button class="btn btn-primary btn-lg" id="btn-start" onclick="startPipeline()">
+                        <span class="btn-icon">⚡</span>
+                        Launch Pipeline
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen: Loading -->
+        <section id="screen-loading" class="screen">
+            <div class="card card-lg fade-in">
+                <div class="card-body center-content">
+                    <div class="loader">
+                        <div class="loader-ring"></div>
+                        <div class="loader-ring"></div>
+                        <div class="loader-ring"></div>
+                    </div>
+                    <h2 id="loading-title">Processing...</h2>
+                    <p class="subtitle" id="loading-subtitle">This may take a moment</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen: PRD Review -->
+        <section id="screen-prd" class="screen">
+            <div class="card card-xl fade-in">
+                <div class="card-header">
+                    <div class="card-header-row">
+                        <h1>📋 PRD Review</h1>
+                        <span class="badge badge-warning">Awaiting Approval</span>
+                    </div>
+                    <p class="subtitle">Review the generated Product Requirements Document. You can edit before approving.</p>
+                </div>
+                <div class="card-body">
+                    <div class="prd-toolbar">
+                        <button class="btn btn-ghost btn-sm" id="btn-prd-toggle" onclick="togglePrdEdit()">
+                            ✏️ Edit
+                        </button>
+                    </div>
+                    <div class="prd-viewer" id="prd-viewer"></div>
+                    <textarea class="prd-editor" id="prd-editor" style="display:none;"></textarea>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-danger" onclick="rejectApproval()">
+                        ✕ Reject
+                    </button>
+                    <button class="btn btn-success" onclick="approvePrd()">
+                        ✓ Approve PRD
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen: Build Approval -->
+        <section id="screen-build" class="screen">
+            <div class="card card-xl fade-in">
+                <div class="card-header">
+                    <div class="card-header-row">
+                        <h1>🏗️ Build Approval</h1>
+                        <span class="badge badge-warning" id="build-badge">Awaiting Approval</span>
+                    </div>
+                    <p class="subtitle">Review the build results and code review feedback.</p>
+                </div>
+                <div class="card-body">
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h3>🧪 QA Result</h3>
+                            <span class="status-pill" id="qa-result">—</span>
+                        </div>
+                        <div class="info-card">
+                            <h3>🔄 Build Attempts</h3>
+                            <span class="status-pill" id="build-attempts">—</span>
+                        </div>
+                    </div>
+                    <div class="section-block">
+                        <h3>🔍 Code Review</h3>
+                        <div class="review-content" id="review-content">No review available</div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-danger" onclick="rejectBuild()">
+                        ✕ Reject
+                    </button>
+                    <button class="btn btn-success" onclick="approveBuild()">
+                        ✓ Approve Build
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen: Complete -->
+        <section id="screen-complete" class="screen">
+            <div class="card card-lg fade-in">
+                <div class="card-body center-content">
+                    <div class="success-icon">🎉</div>
+                    <h1>Pipeline Complete!</h1>
+                    <p class="subtitle">Your app has been built successfully.</p>
+                    <div class="action-row">
+                        <a class="btn btn-primary btn-lg" href="/download-app" id="btn-download">
+                            📦 Download Web App (ZIP)
+                        </a>
+                        <button class="btn btn-ghost btn-lg" onclick="resetApp()">
+                            ⚡ New Project
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen: Cancelled -->
+        <section id="screen-cancelled" class="screen">
+            <div class="card card-lg fade-in">
+                <div class="card-body center-content">
+                    <div class="cancel-icon">🚫</div>
+                    <h1>Pipeline Cancelled</h1>
+                    <p class="subtitle" id="cancel-reason">The pipeline was rejected.</p>
+                    <button class="btn btn-primary btn-lg" onclick="resetApp()">
+                        ⚡ Start New Project
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen: Error -->
+        <section id="screen-error" class="screen">
+            <div class="card card-lg fade-in">
+                <div class="card-body center-content">
+                    <div class="error-icon">⚠️</div>
+                    <h1>Something went wrong</h1>
+                    <p class="subtitle error-text" id="error-message">An unexpected error occurred.</p>
+                    <button class="btn btn-primary btn-lg" onclick="resetApp()">
+                        ⚡ Try Again
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

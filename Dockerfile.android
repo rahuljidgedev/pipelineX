@@ -1,0 +1,33 @@
+FROM eclipse-temurin:17-jdk
+
+# Install dependencies
+RUN apt-get update && apt-get install -y wget unzip git
+
+# ✅ Define SDK root FIRST
+ENV ANDROID_SDK_ROOT=/opt/android-sdk
+
+# Create required directories
+RUN mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
+
+WORKDIR /opt
+
+# Download and setup cmdline-tools properly
+RUN wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O sdk.zip \
+    && unzip sdk.zip -d cmdline-tools-temp \
+    && mkdir -p $ANDROID_SDK_ROOT/cmdline-tools/latest \
+    && mv cmdline-tools-temp/cmdline-tools/* $ANDROID_SDK_ROOT/cmdline-tools/latest/ \
+    && rm -rf sdk.zip cmdline-tools-temp
+
+# ✅ NOW set PATH (after SDK root exists)
+ENV PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools
+
+# Accept licenses
+RUN yes | sdkmanager --licenses
+
+# Install SDK components
+RUN sdkmanager \
+    "platform-tools" \
+    "platforms;android-33" \
+    "build-tools;33.0.0"
+
+WORKDIR /app
