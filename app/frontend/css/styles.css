@@ -211,7 +211,8 @@ body {
     overflow-y: auto;
     backdrop-filter: blur(8px);
     white-space: pre-wrap;
-    word-break: break-all;
+    word-wrap: break-word;
+    word-break: normal;
 }
 
 /* States */
