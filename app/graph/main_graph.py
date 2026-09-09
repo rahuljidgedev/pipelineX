@@ -8,6 +8,13 @@ from app.agents.reviewer_agent import reviewer_agent
 from app.agents.human_node import human_approval_node
 from app.tools.ast_checker import ast_checker_node
 from app.agents.auditor_agent import auditor_agent
+from app.agents.repo_context_agent import repo_context_agent
+from app.agents.compliance_agent import compliance_agent
+from app.tools.fastlane_runner import deployment_node
+from app.agents.ideation_agent import ideation_filter_node
+from app.agents.marketing_agent import marketing_agent
+from app.tools.packaging_node import packaging_node
+from app.core.constants import PipelineMode
 from langgraph.checkpoint.sqlite import SqliteSaver
 
 class State(TypedDict, total=False):
@@ -18,6 +25,8 @@ class State(TypedDict, total=False):
     test_result: str
     ast_result: str
     auditor_result: str
+    compliance_result: str
+    deployment_result: str
     conformity_matrix: str
     attempts: int
     review_result: str
@@ -27,6 +36,12 @@ class State(TypedDict, total=False):
     approval_context: str
     logs: list[str]
     thread_id: str
+    target_app_id: str
+    mode: PipelineMode
+    impacted_files: list[str]
+    is_feasible: bool
+    marketing_result: str
+    packaging_result: str
 
 def route_after_qa(state):
     if state.get("error"):
@@ -79,8 +94,8 @@ def route_after_prd_approval(state):
 
 def route_after_build_approval(state):
     if state.get("last_approval") is True:
-        print("├─ [ROUTER] ✅ BUILD_APPROVAL → END (approved)")
-        return END
+        print("├─ [ROUTER] ✅ BUILD_APPROVAL → COMPLIANCE (approved)")
+        return "compliance_node"
     if state.get("approval_context") == "review":
         print("├─ [ROUTER] 🔄 BUILD_APPROVAL → DEV (review rejected, retrying)")
         return "dev"
@@ -90,6 +105,21 @@ def route_after_build_approval(state):
 
 
 from app.core.logger import log_event
+
+def route_after_init(state):
+    mode = state.get("mode", PipelineMode.GREENFIELD)
+    if mode == PipelineMode.MAINTENANCE:
+        print("├─ [ROUTER] 🔄 INIT → REPO_CONTEXT (maintenance mode)")
+        return "repo_context"
+    else:
+        print("├─ [ROUTER] 🆕 INIT → IDEATION (greenfield mode)")
+        return "ideation_node"
+        
+def route_after_ideation(state):
+    if state.get("error") or state.get("is_feasible") is False:
+        print(f"├─ [ROUTER] ❌ IDEATION → END (rejected: {state.get('error', 'Unknown')})")
+        return END
+    return "pre_pm"
 
 def route_after_pm(state):
     if state.get("error"):
@@ -103,10 +133,14 @@ def route_after_dev(state):
         return END
     return "pre_qa"
 
-memory = SqliteSaver.from_conn_string("checkpoints.sqlite")
+from langgraph.checkpoint.memory import MemorySaver
 
-def build_graph():
-
+def build_graph(checkpointer=None):
+    if checkpointer:
+        memory = checkpointer
+    else:
+        memory = MemorySaver()
+        
     graph = StateGraph(State)
 
     def init_node(state):
@@ -144,8 +178,9 @@ def build_graph():
         logs = log_event({**state, **logs}, "├─ [REVIEW] 🔍 Started — reviewing code...")
         return {"logs": logs["logs"]}
 
-    # Add nodes
     graph.add_node("init", init_node)
+    graph.add_node("ideation_node", ideation_filter_node)
+    graph.add_node("repo_context", repo_context_agent)
     graph.add_node("pre_pm", pre_pm)
     graph.add_node("pm", pm_agent)
     graph.add_node("prd_approval", human_approval_node)
@@ -158,10 +193,26 @@ def build_graph():
     graph.add_node("pre_review", pre_review)
     graph.add_node("review_node", reviewer_agent)
     graph.add_node("build_approval", human_approval_node)
+    graph.add_node("compliance_node", compliance_agent)
+    graph.add_node("packaging_node", packaging_node)
+    graph.add_node("marketing_agent", marketing_agent)
+    graph.add_node("deployment_node", deployment_node)
 
     # Entry point
     graph.set_entry_point("init")
-    graph.add_edge("init", "pre_pm")
+    graph.add_conditional_edges("init", route_after_init, {
+        "ideation_node": "ideation_node",
+        "repo_context": "repo_context"
+    })
+    
+    graph.add_conditional_edges("ideation_node", route_after_ideation, {
+        "pre_pm": "pre_pm",
+        END: END
+    })
+    
+    # Maintenance flow: repo_context -> dev
+    graph.add_edge("repo_context", "pre_dev")
+
     graph.add_edge("pre_pm", "pm")
 
     # Flow: PM → error check → approval
@@ -210,7 +261,16 @@ def build_graph():
     graph.add_edge("review_node", "build_approval")
     graph.add_conditional_edges("build_approval", route_after_build_approval, {
         "dev": "pre_dev",
+        "compliance_node": "compliance_node",
         END: END
     })
+    
+    # Flow: Compliance -> Packaging -> (Deployment & Marketing in Parallel) -> END
+    graph.add_edge("compliance_node", "packaging_node")
+    graph.add_edge("packaging_node", "deployment_node")
+    graph.add_edge("packaging_node", "marketing_agent")
+    
+    graph.add_edge("deployment_node", END)
+    graph.add_edge("marketing_agent", END)
 
     return graph.compile(checkpointer=memory)

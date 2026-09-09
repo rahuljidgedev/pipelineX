@@ -28,13 +28,16 @@ def setup_gradle_wrapper(project_path: str):
         print(f"├─ [BUILDER] ❌ Failed to copy Gradle wrapper: {e}")
         return False
 
-def run_gradle_build(project_path: str):
+def run_gradle_build(project_path: str, app_id: str = None):
     # Ensure modern gradle wrapper is present
     setup_gradle_wrapper(project_path)
     
     # Determine which command to use
     wrapper_path = os.path.join(project_path, "gradlew")
-    command = ["./gradlew", ":composeApp:assembleDebug", "--no-daemon"] if os.path.exists(wrapper_path) else ["gradle", ":composeApp:assembleDebug", "--no-daemon"]
+    
+    target_module = f":apps:{app_id}" if app_id else ":composeApp"
+    cmd_base = ["./gradlew"] if os.path.exists(wrapper_path) else ["gradle"]
+    command = cmd_base + [f"{target_module}:assembleDebug", "--no-daemon"]
     
     # Force JAVA_HOME and ANDROID_HOME dynamically
     env = os.environ.copy()
@@ -93,13 +96,16 @@ def run_static_analysis(project_path: str):
         "returncode": 0
     }
 
-def cleanup_workspace(project_path: str):
+def cleanup_workspace(project_path: str, app_id: str = None):
     """Garbage Collect local .gradle and build directories to save disk space."""
     paths_to_remove = [
         os.path.join(project_path, ".gradle"),
         os.path.join(project_path, "build"),
-        os.path.join(project_path, "composeApp", "build"),
     ]
+    if app_id:
+        paths_to_remove.append(os.path.join(project_path, "apps", app_id, "build"))
+    else:
+        paths_to_remove.append(os.path.join(project_path, "composeApp", "build"))
     for path in paths_to_remove:
         if os.path.exists(path):
             try:

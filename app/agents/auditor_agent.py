@@ -71,7 +71,7 @@ def auditor_agent(state):
     """
     
     try:
-        response = call_llm(prompt, max_tokens=1500)
+        response = call_llm(prompt, max_tokens=1500, model_name="gpt-4o-mini")
     except Exception as e:
         error_msg = f"Auditor Agent LLM failed: {str(e)}"
         logs = log_event({**state, **logs}, f"├─ [AUDITOR] ❌ {error_msg}")

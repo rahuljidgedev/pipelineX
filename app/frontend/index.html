@@ -25,55 +25,110 @@
         <div class="header-meta" id="header-meta"></div>
     </header>
 
-    <!-- Pipeline Stepper -->
-    <!-- Stepper Container -->
-    <div id="stepper-container" class="orbital-container">
-        <div class="orbital-system">
-            <!-- Center Core / Black Hole -->
-            <div class="orbital-center-mass"></div>
-            
-            <!-- Glowing Orbital Ring -->
-            <div class="orbital-ring"></div>
-            
-            <!-- The Traveling Energy Orb -->
-            <div id="orbital-orb" class="orbital-orb">
-                <div class="orb-core"></div>
-                <div class="orb-aura"></div>
+    <!-- App Layout for side-by-side Stepper and Main -->
+    <div class="app-layout">
+        
+        <!-- Pipeline Stepper -->
+        <!-- Stepper Container -->
+    <div id="stepper-container" class="vertical-stepper-container" style="display: none;">
+        <div class="stepper-track"></div>
+        
+        <div class="step-item" data-step="init">
+            <div class="step-indicator"></div>
+            <div class="step-content">
+                <div class="step-title">INIT</div>
+                <div class="step-logs" id="logs-init"></div>
             </div>
-
-            <!-- Satellite Stations -->
-            <!-- The custom properties --angle control the position on the orbit circle -->
-            <div class="satellite" data-step="init" style="--angle: 200deg;">
-                <div class="satellite-node"></div>
-                <div class="satellite-label">INIT</div>
+        </div>
+        <div class="step-item" data-step="ideation_node">
+            <div class="step-indicator"></div>
+            <div class="step-content">
+                <div class="step-title">IDEATION</div>
+                <div class="step-logs" id="logs-ideation_node"></div>
             </div>
-            <div class="satellite" data-step="pm" style="--angle: 225deg;">
-                <div class="satellite-node"></div>
-                <div class="satellite-label">PM</div>
+        </div>
+        <div class="step-item" data-step="pm">
+            <div class="step-indicator"></div>
+            <div class="step-content">
+                <div class="step-title">PM</div>
+                <div class="step-logs" id="logs-pm"></div>
             </div>
-            <div class="satellite" data-step="prd_approval" style="--angle: 250deg;">
-                <div class="satellite-node"></div>
-                <div class="satellite-label">PRD</div>
+        </div>
+        <div class="step-item" data-step="prd_approval">
+            <div class="step-indicator"></div>
+            <div class="step-content">
+                <div class="step-title">PRD</div>
+                <div class="step-logs" id="logs-prd_approval"></div>
             </div>
-            <div class="satellite" data-step="dev" style="--angle: 275deg;">
-                <div class="satellite-node"></div>
-                <div class="satellite-label">DEV</div>
+        </div>
+        <div class="step-item" data-step="dev">
+            <div class="step-indicator"></div>
+            <div class="step-content">
+                <div class="step-title">DEV</div>
+                <div class="step-logs" id="logs-dev"></div>
             </div>
-            <div class="satellite" data-step="qa" style="--angle: 300deg;">
-                <div class="satellite-node"></div>
-                <div class="satellite-label">QA</div>
+        </div>
+        <div class="step-item" data-step="qa">
+            <div class="step-indicator"></div>
+            <div class="step-content">
+                <div class="step-title">QA</div>
+                <div class="step-logs" id="logs-qa"></div>
             </div>
-            <div class="satellite" data-step="review_node" style="--angle: 325deg;">
-                <div class="satellite-node"></div>
-                <div class="satellite-label">REVIEW</div>
+        </div>
+        <div class="step-item" data-step="ast_node">
+            <div class="step-indicator"></div>
+            <div class="step-content">
+                <div class="step-title">AST</div>
+                <div class="step-logs" id="logs-ast_node"></div>
             </div>
-            <div class="satellite" data-step="build_approval" style="--angle: 350deg;">
-                <div class="satellite-node"></div>
-                <div class="satellite-label">BUILD</div>
+        </div>
+        <div class="step-item" data-step="auditor_node">
+            <div class="step-indicator"></div>
+            <div class="step-content">
+                <div class="step-title">AUDIT</div>
+                <div class="step-logs" id="logs-auditor_node"></div>
             </div>
-            <div class="satellite" data-step="done" style="--angle: 15deg;">
-                <div class="satellite-node"></div>
-                <div class="satellite-label">DONE</div>
+        </div>
+        <div class="step-item" data-step="review_node">
+            <div class="step-indicator"></div>
+            <div class="step-content">
+                <div class="step-title">REVIEW</div>
+                <div class="step-logs" id="logs-review_node"></div>
+            </div>
+        </div>
+        <div class="step-item" data-step="build_approval">
+            <div class="step-indicator"></div>
+            <div class="step-content">
+                <div class="step-title">BUILD</div>
+                <div class="step-logs" id="logs-build_approval"></div>
+            </div>
+        </div>
+        <div class="step-item" data-step="compliance_node">
+            <div class="step-indicator"></div>
+            <div class="step-content">
+                <div class="step-title">COMPLY</div>
+                <div class="step-logs" id="logs-compliance_node"></div>
+            </div>
+        </div>
+        <div class="step-item" data-step="packaging_node">
+            <div class="step-indicator"></div>
+            <div class="step-content">
+                <div class="step-title">PACKAGE</div>
+                <div class="step-logs" id="logs-packaging_node"></div>
+            </div>
+        </div>
+        <div class="step-item" data-step="deployment_node">
+            <div class="step-indicator"></div>
+            <div class="step-content">
+                <div class="step-title">LAUNCH</div>
+                <div class="step-logs" id="logs-deployment_node"></div>
+            </div>
+        </div>
+        <div class="step-item" data-step="done">
+            <div class="step-indicator"></div>
+            <div class="step-content">
+                <div class="step-title">DONE</div>
+                <div class="step-logs" id="logs-done"></div>
             </div>
         </div>
     </div>
@@ -235,19 +290,9 @@
         </section>
 
     </main>
+    
+    </div> <!-- End App Layout -->
 
-    <!-- Log Window -->
-    <div class="log-window-container" id="log-window-container" style="display: none;">
-        <div class="log-window">
-            <div class="log-header">
-                <span>📁 Factory Logs</span>
-                <button class="log-toggle" onclick="toggleLogs()">—</button>
-            </div>
-            <div class="log-body" id="log-body">
-                <div class="log-line welcome">Factory initialized. Ready for input.</div>
-            </div>
-        </div>
-    </div>
 
     <script src="/static/js/app.js"></script>
 </body>

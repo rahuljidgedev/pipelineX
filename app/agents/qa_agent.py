@@ -14,6 +14,7 @@ def qa_agent(state):
     attempts = (state.get("attempts") or 0) + 1
     attempt_label = "Initial Build" if attempts == 1 else f"Retry {attempts-1}"
     thread_id = state.get("thread_id", "run-1")
+    target_app_id = state.get("target_app_id")
 
     emit_factory_event(
         run_id=thread_id,
@@ -100,8 +101,8 @@ def qa_agent(state):
             pass
     else:
         # --- 2. KMP Compilation Check ---
-        print(f"├─ [QA_DEBUG] Running Gradle build in {project_path}...")
-        build_result = run_gradle_build(project_path)
+        print(f"├─ [QA_DEBUG] Running Gradle build in {project_path} for app {target_app_id}...")
+        build_result = run_gradle_build(project_path, app_id=target_app_id)
         
         if build_result["success"]:
             test_result = "pass"
@@ -154,7 +155,7 @@ def qa_agent(state):
             approval_context = "qa_passed"
             
             # --- 3. Workspace Garbage Collection ---
-            cleanup_workspace(project_path)
+            cleanup_workspace(project_path, app_id=target_app_id)
             
             emit_factory_event(
                 run_id=thread_id,
@@ -193,6 +194,15 @@ def qa_agent(state):
                 print(f"├─ [QA_DEBUG] Full error log saved to error_logs.txt")
             except Exception:
                 pass
+                
+            if attempts == 4:
+                print("├─ [QA_DEBUG] Max retries hit. Filing Autonomous GitHub Bug Report...")
+                from app.tools.github_integration import file_github_issue
+                issue_body = f"PipelineX encountered an unrecoverable failure during QA for {target_app_id}.\n\n### Error Logs\n```text\n{error_logs}\n```\n\n### PRD Context\n{state.get('prd', 'N/A')}\n\n### Attempted Code\n```kotlin\n{state.get('code', 'N/A')}\n```"
+                file_github_issue(
+                    title=f"[Autonomous Factory Bug] Compilation Failed for {target_app_id}",
+                    body=issue_body
+                )
 
     return {
         "attempts": attempts,

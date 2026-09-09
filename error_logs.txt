@@ -1,60 +1,33 @@
 COMPILATION ERROR:
-e: file:///home/ekalpa/Documents/Developer/pipelineX/workspace/composeApp/src/commonMain/kotlin/App.kt:20:47 Unresolved reference: Event
-e: file:///home/ekalpa/Documents/Developer/pipelineX/workspace/composeApp/src/commonMain/kotlin/App.kt:38:56 Unresolved reference: Event
+Exception in thread "main" java.lang.reflect.InvocationTargetException
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.gradle.wrapper.BootstrapMainStarter.start(BootstrapMainStarter.java:35)
+	at org.gradle.wrapper.WrapperExecutor.execute(WrapperExecutor.java:103)
+	at org.gradle.wrapper.GradleWrapperMain.main(GradleWrapperMain.java:66)
+Caused by: java.lang.ExceptionInInitializerError
+	at java.util.jar.JarFile.initializeVerifier(JarFile.java:370)
+	at java.util.jar.JarFile.ensureInitialization(JarFile.java:617)
+	at java.util.jar.JavaUtilJarAccessImpl.ensureInitialization(JavaUtilJarAccessImpl.java:69)
+	at sun.misc.URLClassPath$JarLoader$2.getManifest(URLClassPath.java:991)
+	at java.net.URLClassLoader.defineClass(URLClassLoader.java:451)
+	at java.net.URLClassLoader.access$100(URLClassLoader.java:74)
+	at java.net.URLClassLoader$1.run(URLClassLoader.java:369)
+	at java.net.URLClassLoader$1.run(URLClassLoader.java:363)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:362)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:418)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:351)
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Class.java:264)
+	at org.gradle.launcher.GradleMain.main(GradleMain.java:32)
+	... 7 more
+Caused by: java.lang.IllegalArgumentException: Error in security property. Constraint unknown: jdk.disabled.namedCurves
+	at sun.security.util.DisabledAlgorithmConstraints$Constraints.<init>(DisabledAlgorithmConstraints.java:329)
+	at sun.security.util.DisabledAlgorithmConstraints.<init>(DisabledAlgorithmConstraints.java:100)
+	at sun.security.util.DisabledAlgorithmConstraints.<init>(DisabledAlgorithmConstraints.java:85)
+	at sun.security.util.SignatureFileVerifier.<clinit>(SignatureFileVerifier.java:62)
+	... 22 more
 
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':composeApp:compileDebugKotlinAndroid'.
-> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
-   > Compilation error. See log for more details
-
-* Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
-> Run with --scan to get full insights.
-> Get more help at https://help.gradle.org.
-
-BUILD FAILED in 12s
-
-To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.2/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
-Daemon will be stopped at the end of the build 
-> Task :composeApp:preBuild UP-TO-DATE
-> Task :composeApp:preDebugBuild UP-TO-DATE
-> Task :composeApp:mergeDebugNativeDebugMetadata NO-SOURCE
-> Task :composeApp:checkKotlinGradlePluginConfigurationErrors
-> Task :composeApp:generateComposeResClass UP-TO-DATE
-> Task :composeApp:checkDebugAarMetadata UP-TO-DATE
-> Task :composeApp:generateDebugResValues UP-TO-DATE
-> Task :composeApp:mapDebugSourceSetPaths UP-TO-DATE
-> Task :composeApp:generateDebugResources UP-TO-DATE
-> Task :composeApp:mergeDebugResources UP-TO-DATE
-> Task :composeApp:packageDebugResources UP-TO-DATE
-> Task :composeApp:parseDebugLocalResources UP-TO-DATE
-> Task :composeApp:createDebugCompatibleScreenManifests UP-TO-DATE
-> Task :composeApp:extractDeepLinksDebug UP-TO-DATE
-> Task :composeApp:processDebugMainManifest UP-TO-DATE
-> Task :composeApp:processDebugManifest UP-TO-DATE
-> Task :composeApp:processDebugManifestForPackage UP-TO-DATE
-> Task :composeApp:processDebugResources UP-TO-DATE
-> Task :composeApp:javaPreCompileDebug UP-TO-DATE
-> Task :composeApp:mergeDebugShaders UP-TO-DATE
-> Task :composeApp:compileDebugShaders NO-SOURCE
-> Task :composeApp:copyDebugFontsToAndroidAssets UP-TO-DATE
-> Task :composeApp:generateDebugAssets UP-TO-DATE
-> Task :composeApp:mergeDebugAssets UP-TO-DATE
-> Task :composeApp:compressDebugAssets UP-TO-DATE
-> Task :composeApp:desugarDebugFileDependencies UP-TO-DATE
-> Task :composeApp:copyCommonAndroidComposeResources NO-SOURCE
-> Task :composeApp:checkDebugDuplicateClasses UP-TO-DATE
-> Task :composeApp:mergeExtDexDebug UP-TO-DATE
-> Task :composeApp:mergeLibDexDebug UP-TO-DATE
-> Task :composeApp:mergeDebugJniLibFolders UP-TO-DATE
-> Task :composeApp:mergeDebugNativeLibs NO-SOURCE
-> Task :composeApp:stripDebugDebugSymbols NO-SOURCE
-> Task :composeApp:validateSigningDebug UP-TO-DATE
-> Task :composeApp:writeDebugAppMetadata UP-TO-DATE
-> Task :composeApp:writeDebugSigningConfigVersions UP-TO-DATE
-
-> Task :composeApp:compileDebugKotlinAndroid FAILED
-28 actionable tasks: 2 executed, 26 up-to-date

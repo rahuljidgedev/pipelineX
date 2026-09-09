@@ -5,6 +5,8 @@ from app.core.logger import log_event
 from app.telemetry.factory_logger import emit_factory_event
 from app.telemetry.translator import translate_to_domino_ticker
 from app.tools.workspace_customizer import seed_custom_workspace, generate_project_metadata
+from app.core.constants import PipelineMode
+
 def dev_agent(state):
     error_logs = state.get("error_logs")
     review_result = state.get("review_result")
@@ -12,6 +14,8 @@ def dev_agent(state):
     attempts = state.get("attempts", 0)
     idea = state.get("idea", "")
     thread_id = state.get("thread_id", "run-1")
+    mode = state.get("mode", PipelineMode.GREENFIELD)
+    jrc = state.get("jrc", "")
 
     emit_factory_event(
         run_id=thread_id,
@@ -22,12 +26,14 @@ def dev_agent(state):
         plain_english_translation=translate_to_domino_ticker("MODULE_4_DEV_QA", "WORKING")
     )
 
-    # 1. On initial run (no error logs / attempts == 0), seed and customize the workspace
-    if not error_logs and attempts == 0:
-        seed_custom_workspace(idea)
+    # 1. On initial run (no error logs / attempts == 0), seed and customize the workspace if greenfield
+    if not error_logs and attempts == 0 and mode == PipelineMode.GREENFIELD:
+        metadata = seed_custom_workspace(idea)
+    else:
+        metadata = generate_project_metadata(idea)
         
-    metadata = generate_project_metadata(idea)
     package_name = metadata["package_name"]
+    target_app_id = metadata["app_id"]
 
     retry_notes = []
     if error_logs:
@@ -40,7 +46,7 @@ def dev_agent(state):
     STRICTLY follow this format for every file you generate or edit. You MUST use the FILE: marker followed by the path, then the code inside triple backticks.
     
     Example:
-    FILE: composeApp/src/commonMain/kotlin/App.kt
+    FILE: apps/{target_app_id}/src/commonMain/kotlin/App.kt
     ```kotlin
     package {package_name}
 
@@ -62,18 +68,22 @@ def dev_agent(state):
         except Exception as e:
             print(f"├─ [DEV_DEBUG] Failed to load lessons: {e}")
 
-    if retry_notes:
+    if retry_notes or mode == PipelineMode.MAINTENANCE:
         feedback_block = "\n\n".join(
             f"{title}:\n{content}" for title, content in retry_notes
-        )
+        ) if retry_notes else f"MAINTENANCE TASK / BUG REPORT:\n{idea}"
+        
+        # In maintenance mode, the code context is provided via RAG (jrc), or from the previous code generation
+        code_context = state.get("code") or jrc
+        
         prompt = f"""
-        You are an expert Kotlin Multiplatform architect fixing a compilation or validation failure.
+        You are an expert Kotlin Multiplatform architect fixing a compilation/validation failure or implementing a maintenance task.
 
-        ERROR FEEDBACK:
+        TASK / ERROR FEEDBACK:
         {feedback_block}
 
-        CURRENT SOURCE FILE:
-        {state.get("code")}
+        CURRENT SOURCE FILES CONTEXT:
+        {code_context}
         
         {lessons_block}
 
@@ -81,7 +91,7 @@ def dev_agent(state):
         1. DO NOT output the entire file from scratch.
         2. Output ONLY the targeted modifications using this exact patch format:
 
-        FILE: composeApp/src/commonMain/kotlin/App.kt
+        FILE: apps/{target_app_id}/src/commonMain/kotlin/App.kt
         <<<< SEARCH
         ...exact snippet of original code to replace...
         ==== REPLACE
@@ -113,15 +123,15 @@ def dev_agent(state):
         The package names, namespaces, and basic configuration files have been pre-configured based on the idea.
         
         Your primary task is to generate and implement the business logic and user interface files:
-        1. composeApp/src/commonMain/kotlin/App.kt (Main Compose UI and entry point)
-        2. Additional helper UI classes or state holders in composeApp/src/commonMain/kotlin/ui/ or composeApp/src/commonMain/kotlin/data/ as needed.
+        1. apps/{target_app_id}/src/commonMain/kotlin/App.kt (Main Compose UI and entry point)
+        2. Additional helper UI classes or state holders in apps/{target_app_id}/src/commonMain/kotlin/ui/ or apps/{target_app_id}/src/commonMain/kotlin/data/ as needed.
         
         ---
         RULES & BOUNDARIES:
         - Strict Locked Boundaries: You are programmatically BLOCKED from modifying build configuration scripts, Gradle settings, wrappers, properties, or AndroidManifest.xml files. DO NOT output edits to settings.gradle.kts, build.gradle.kts, gradle.properties, or AndroidManifest.xml. Doing so will result in an immediate block.
         - Injectable Territory: You must ONLY generate, edit, or output source files under:
-          1. composeApp/src/commonMain/kotlin/App.kt
-          2. composeApp/src/commonMain/kotlin/ui/ or composeApp/src/commonMain/kotlin/data/
+          1. apps/{target_app_id}/src/commonMain/kotlin/App.kt
+          2. apps/{target_app_id}/src/commonMain/kotlin/ui/ or apps/{target_app_id}/src/commonMain/kotlin/data/
         - MANDATORY: All source code must be complete, functional, and compilable. Do not truncate.
         - MANDATORY: The main root composable in App.kt MUST be named `App()` because MainActivity explicitly calls it.
         - MANDATORY: You MUST use `package {package_name}` at the top of App.kt.
@@ -156,9 +166,9 @@ def dev_agent(state):
         
         ---
         REQUIRED FILE CHECKLIST (Generate and implement these files):
-        1. composeApp/src/commonMain/kotlin/App.kt
-        2. composeApp/src/commonTest/kotlin/... (Unit tests)
-        3. composeApp/src/androidUnitTest/kotlin/... (Robolectric tests)
+        1. apps/{target_app_id}/src/commonMain/kotlin/App.kt
+        2. apps/{target_app_id}/src/commonTest/kotlin/... (Unit tests)
+        3. apps/{target_app_id}/src/androidUnitTest/kotlin/... (Robolectric tests)
         
         ---
         {FORMAT_RULES}
@@ -212,6 +222,7 @@ def dev_agent(state):
     return {
         "code": code, 
         "logs": final_logs["logs"],
-        "test_result": None
+        "test_result": None,
+        "target_app_id": target_app_id
     }
 

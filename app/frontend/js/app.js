@@ -13,9 +13,8 @@ const app = {
     logsMinimized: false
 };
 
-// --- Pipeline step order (for stepper) ---
 const STEP_ORDER = [
-    'init', 'pm', 'prd_approval', 'dev', 'qa', 'review_node', 'build_approval', 'done'
+    'init', 'ideation_node', 'pm', 'prd_approval', 'dev', 'qa', 'ast_node', 'auditor_node', 'review_node', 'build_approval', 'compliance_node', 'packaging_node', 'deployment_node', 'done'
 ];
 
 // =====================
@@ -58,7 +57,7 @@ function updateStepper(activeStep) {
     const delay = ms => new Promise(res => setTimeout(res, ms));
 
     STEP_ORDER.forEach((step, i) => {
-        const el = document.querySelector(`.satellite[data-step="${step}"]`);
+        const el = document.querySelector(`.step-item[data-step="${step}"]`);
         if (!el) return;
 
         el.classList.remove('completed', 'active');
@@ -66,13 +65,6 @@ function updateStepper(activeStep) {
             el.classList.add('completed');
         } else if (i === activeIdx) {
             el.classList.add('active');
-            
-            // Move the orbital core to match this satellite's angle
-            const angle = el.style.getPropertyValue('--angle');
-            const orb = document.getElementById('orbital-orb');
-            if (orb && angle) {
-                orb.style.setProperty('--orb-angle', angle);
-            }
         }
     });
 }
@@ -238,31 +230,48 @@ function handleStatusUpdate(status) {
         let activeNode = 'init';
 
         if (node.includes('pm')) activeNode = 'pm';
+        else if (node.includes('ideation')) activeNode = 'ideation_node';
         else if (node.includes('dev')) activeNode = 'dev';
+        else if (node.includes('ast')) activeNode = 'ast_node';
+        else if (node.includes('audit')) activeNode = 'auditor_node';
         else if (node.includes('qa')) activeNode = 'qa';
         else if (node.includes('review')) activeNode = 'review_node';
+        else if (node.includes('compliance')) activeNode = 'compliance_node';
+        else if (node.includes('packaging')) activeNode = 'packaging_node';
+        else if (node.includes('deployment') || node.includes('marketing')) activeNode = 'deployment_node';
         else if (node.includes('approval')) {
             activeNode = state.review_result ? 'build_approval' : 'prd_approval';
         }
         
         // Fallback logic based on state data
         if (activeNode === 'init') {
-            if (state.review_result) activeNode = 'build_approval'; 
-            else if (state.test_result === 'pass') activeNode = 'review_node'; 
+            if (state.packaging_result) activeNode = 'deployment_node';
+            else if (state.compliance_result) activeNode = 'packaging_node';
+            else if (state.review_result) activeNode = 'build_approval'; 
+            else if (state.auditor_result) activeNode = 'review_node'; 
+            else if (state.ast_result) activeNode = 'auditor_node'; 
+            else if (state.test_result === 'pass') activeNode = 'ast_node'; 
             else if (state.test_result === 'fail') activeNode = 'dev'; 
             else if (state.code) activeNode = 'qa'; 
             else if (state.prd) activeNode = 'dev'; 
-            else if (state.idea) activeNode = 'pm'; 
+            else if (state.is_feasible) activeNode = 'pm'; 
+            else if (state.idea) activeNode = 'ideation_node'; 
         }
         
         updateStepper(activeNode);
         
         // Show loading screen with context
         const labels = {
+            'ideation_node': ['Evaluating Idea...', 'The Quality Gate is checking feasibility'],
             'pm': ['Writing PRD...', 'The PM agent is defining requirements'],
             'dev': ['Coding...', 'The Dev agent is building your web app'],
             'qa': ['Testing...', 'The QA agent is validating the build'],
-            'review_node': ['Reviewing...', 'A senior engineer is checking code quality']
+            'ast_node': ['Static Analysis...', 'The AST checker is analyzing code structure'],
+            'auditor_node': ['Auditing...', 'The Auditor agent is checking semantic compliance'],
+            'review_node': ['Reviewing...', 'A senior engineer is checking code quality'],
+            'compliance_node': ['Compliance...', 'Generating legal and Play Store metadata'],
+            'packaging_node': ['Packaging...', 'Zipping source code and app bundles'],
+            'deployment_node': ['Launching...', 'Deploying to Play Store & executing Marketing Campaign']
         };
         const [title, sub] = labels[activeNode] || ['Processing...', 'The pipeline is running'];
         showLoading(title, sub);
@@ -406,8 +415,9 @@ function resetApp() {
     document.getElementById('input-name').value = '';
     document.getElementById('input-idea').value = '';
     document.getElementById('header-meta').textContent = '';
-    document.getElementById('log-body').innerHTML = '<div class="log-line welcome">Factory initialized. Ready for input.</div>';
-    document.getElementById('log-window-container').style.display = 'none';
+    
+    // Clear all step logs
+    document.querySelectorAll('.step-logs').forEach(el => el.innerHTML = '');
     
     showStepper(false);
     showScreen('start');
@@ -416,35 +426,26 @@ function resetApp() {
 // --- Log Helpers ---
 
 function addLogLine(text) {
-    const body = document.getElementById('log-body');
-    const container = document.getElementById('log-window-container');
-    container.style.display = '';
+    let containerId = 'logs-init';
+    if (app.lastActiveNode) {
+        containerId = 'logs-' + app.lastActiveNode;
+    }
+    const container = document.getElementById(containerId);
+    if (!container) return;
 
     const line = document.createElement('div');
-    line.className = 'log-line info';
+    line.className = 'log-line';
     
-    // Auto-classify based on content
-    if (text.includes('✅') || text.includes('successfully')) line.classList.add('success');
-    if (text.includes('❌') || text.includes('failed') || text.includes('error')) line.classList.add('error');
-    if (text.includes('Started')) line.classList.add('welcome');
+    if (text.includes('✅') || text.includes('successfully')) line.style.color = '#34d399';
+    else if (text.includes('❌') || text.includes('failed') || text.includes('error')) line.style.color = '#f87171';
+    else if (text.includes('Started')) line.style.color = '#60a5fa';
 
     line.textContent = text;
-    body.appendChild(line);
+    container.appendChild(line);
     
-    // Auto scroll
-    body.scrollTop = body.scrollHeight;
+    container.scrollTop = container.scrollHeight;
 }
 
 function toggleLogs() {
-    const container = document.getElementById('log-window-container');
-    const toggle = document.querySelector('.log-toggle');
-    
-    if (app.logsMinimized) {
-        container.style.bottom = '24px';
-        toggle.textContent = '—';
-    } else {
-        container.style.bottom = '-260px';
-        toggle.textContent = '+';
-    }
-    app.logsMinimized = !app.logsMinimized;
+    // Legacy global log toggle is removed
 }

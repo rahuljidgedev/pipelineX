@@ -1,5 +1,6 @@
 import asyncio
 from app.graph.main_graph import build_graph
+from app.core.constants import PipelineMode
 from langgraph.types import Command
 import uuid
 
@@ -8,9 +9,12 @@ async def run_test():
     thread_id = str(uuid.uuid4())
     config = {"configurable": {"thread_id": thread_id}}
     
-    inputs = {"idea": "A premium Counter app with history using Kotlin Multiplatform and Compose Multiplatform. No web files."}
+    inputs = {
+        "idea": "A premium Counter app with history using Kotlin Multiplatform and Compose Multiplatform. No web files.",
+        "mode": PipelineMode.GREENFIELD
+    }
     
-    print(f"🚀 Starting test pipeline for thread: {thread_id}")
+    print(f"🚀 Starting test pipeline for thread: {thread_id} in {inputs['mode']} mode")
     
     current_inputs = inputs
     while True:

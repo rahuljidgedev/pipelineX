@@ -2,6 +2,7 @@ from openai import OpenAI
 from google import genai
 from app.core.config import settings
 import os
+import requests
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 provider = settings.LLM_PROVIDER
@@ -23,12 +24,15 @@ elif provider == "gemini":
     wait=wait_exponential(multiplier=1, min=2, max=10),
     reraise=True
 )
-def call_llm(prompt: str, max_tokens: int = 1000) -> str:
+def call_llm(prompt: str, max_tokens: int = 1000, model_name: str = "gpt-4o") -> str:
     try:
         if provider == "gemini":
-            print(f"    📡 [LLM] Calling gemini-flash-latest via SDK (max_tokens={max_tokens})...")
+            # Hardcoded to gemini-3.6-flash as instructed by the API deprecation error
+            gemini_model = "gemini-3.6-flash"
+
+            print(f"    📡 [LLM] Calling {gemini_model} via SDK (max_tokens={max_tokens})...")
             response = gemini_client.models.generate_content(
-                model='gemini-flash-latest',
+                model=gemini_model,
                 contents=prompt,
                 config=genai.types.GenerateContentConfig(
                     system_instruction="You are a seasoned senior software engineer.",
@@ -38,9 +42,9 @@ def call_llm(prompt: str, max_tokens: int = 1000) -> str:
             )
             content = response.text
         else:
-            print(f"    📡 [LLM] Calling gpt-4o (max_tokens={max_tokens})...")
+            print(f"    📡 [LLM] Calling {model_name} (max_tokens={max_tokens})...")
             response = openai_client.chat.completions.create(
-                model="gpt-4o",
+                model=model_name,
                 messages=[
                         {"role": "system", "content": "You are a senior software engineer."},
                         {"role": "user", "content": prompt}

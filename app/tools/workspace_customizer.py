@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+from app.tools.workspace_registry import register_app
 
 def slugify(text: str) -> str:
     """Convert arbitrary text into a clean alphanumeric slug (no special chars)."""
@@ -35,6 +36,7 @@ def generate_project_metadata(idea: str):
     namespace = f"com.example.{slug}"
     
     return {
+        "app_id": slug,
         "app_title": app_title,
         "package_name": package_name,
         "namespace": namespace
@@ -69,10 +71,11 @@ def seed_custom_workspace(idea: str, target_workspace: str = "workspace"):
     print(f"├─ [CUSTOMIZER]    Package Name: {metadata['package_name']}")
     print(f"├─ [CUSTOMIZER]    Namespace:    {metadata['namespace']}")
     
-    # 1. Clear target workspace first to ensure a pristine seed
-    if os.path.exists(target_workspace):
-        for filename in os.listdir(target_workspace):
-            file_path = os.path.join(target_workspace, filename)
+    # 1. Clear ONLY the target app's directory to ensure a pristine seed for this app
+    app_dir = os.path.join(target_workspace, "apps", metadata["app_id"])
+    if os.path.exists(app_dir):
+        for filename in os.listdir(app_dir):
+            file_path = os.path.join(app_dir, filename)
             try:
                 if os.path.isfile(file_path) or os.path.islink(file_path):
                     os.unlink(file_path)
@@ -81,7 +84,7 @@ def seed_custom_workspace(idea: str, target_workspace: str = "workspace"):
             except Exception as e:
                 print(f'Failed to delete {file_path}. Reason: {e}')
     else:
-        os.makedirs(target_workspace, exist_ok=True)
+        os.makedirs(app_dir, exist_ok=True)
     
     # 2. Source template base path
     template_path = "app/resources/kmp_golden_template"
@@ -90,21 +93,56 @@ def seed_custom_workspace(idea: str, target_workspace: str = "workspace"):
         _create_fallback_golden_template(template_path)
         
     # 3. Copy files from template to workspace
+    # Root files go to target_workspace, composeApp files go to apps/{app_id}
     for root, dirs, files in os.walk(template_path):
-        # Calculate relative path to replicate structure
         rel_path = os.path.relpath(root, template_path)
-        dest_dir = os.path.join(target_workspace, rel_path) if rel_path != "." else target_workspace
+        
+        # Determine destination directory
+        if rel_path == "." or not rel_path.startswith("composeApp"):
+            dest_dir = os.path.join(target_workspace, rel_path) if rel_path != "." else target_workspace
+        else:
+            # Map "composeApp" to "apps/{app_id}"
+            remapped_path = rel_path.replace("composeApp", "", 1).lstrip(os.sep)
+            dest_dir = os.path.join(app_dir, remapped_path)
+            
         os.makedirs(dest_dir, exist_ok=True)
         
         for file in files:
             src_file = os.path.join(root, file)
             dest_file = os.path.join(dest_dir, file)
             
-            # Copy file
-            shutil.copy2(src_file, dest_file)
+            # Copy file (only overwrite root files if they don't exist, to preserve global state, except settings.gradle.kts which we dynamically rewrite)
+            if rel_path == "." or not rel_path.startswith("composeApp"):
+                if file != "settings.gradle.kts" and not os.path.exists(dest_file):
+                    shutil.copy2(src_file, dest_file)
+            else:
+                shutil.copy2(src_file, dest_file)
             
-            # Customize content (replace placeholders)
-            customize_file_content(dest_file, metadata)
+            # Customize content (replace placeholders) for the files we just copied/exist
+            if os.path.exists(dest_file):
+                customize_file_content(dest_file, metadata)
+                
+    # 3.5 Dynamically rewrite settings.gradle.kts for Ghost Monorepo
+    settings_content = f"""pluginManagement {{
+    repositories {{
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }}
+}}
+dependencyResolutionManagement {{
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {{
+        google()
+        mavenCentral()
+    }}
+}}
+rootProject.name = "PipelineX-Factory"
+include(":shared-core")
+include(":apps:{metadata['app_id']}")
+"""
+    with open(os.path.join(target_workspace, "settings.gradle.kts"), "w") as f:
+        f.write(settings_content)
             
     # 4. Check for hardware capabilities requested in the idea and write sub-manifest features
     idea_lower = idea.lower()
@@ -123,7 +161,7 @@ def seed_custom_workspace(idea: str, target_workspace: str = "workspace"):
         print("├─ [CUSTOMIZER] 📷 Detected Camera requirements.")
         
     if permissions or features:
-        manifest_path = os.path.join(target_workspace, "composeApp", "src", "androidMain", "AndroidManifest-features.xml")
+        manifest_path = os.path.join(app_dir, "src", "androidMain", "AndroidManifest-features.xml")
         os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
         
         perm_lines = "\n".join([f'    <uses-permission android:name="{p}" />' for p in permissions])
@@ -137,7 +175,10 @@ def seed_custom_workspace(idea: str, target_workspace: str = "workspace"):
 </manifest>""")
         print(f"├─ [CUSTOMIZER] 📝 Dynamic AndroidManifest-features.xml written with permissions: {permissions}")
 
-    print(f"├─ [CUSTOMIZER] ✅ Golden Template seeded and customized in '{target_workspace}'!")
+    # Register the app in the global registry
+    register_app(metadata["app_id"], metadata["package_name"], metadata["app_title"])
+
+    print(f"├─ [CUSTOMIZER] ✅ Golden Template seeded and customized in '{app_dir}'!")
     return metadata
 
 def _create_fallback_golden_template(path: str):
