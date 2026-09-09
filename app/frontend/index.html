@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Software Factory</title>
+    <title>PipelineX</title>
     <meta name="description" content="Autonomous AI-powered software development pipeline">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,52 +20,60 @@
     <header class="header">
         <div class="logo">
             <span class="logo-icon">⚡</span>
-            <span class="logo-text">AI Software Factory</span>
+            <span class="logo-text">PipelineX</span>
         </div>
         <div class="header-meta" id="header-meta"></div>
     </header>
 
     <!-- Pipeline Stepper -->
-    <div class="stepper-container" id="stepper-container" style="display: none;">
-        <div class="stepper">
-            <div class="step" data-step="init">
-                <div class="step-dot"></div>
-                <span class="step-label">Init</span>
+    <!-- Stepper Container -->
+    <div id="stepper-container" class="orbital-container">
+        <div class="orbital-system">
+            <!-- Center Core / Black Hole -->
+            <div class="orbital-center-mass"></div>
+            
+            <!-- Glowing Orbital Ring -->
+            <div class="orbital-ring"></div>
+            
+            <!-- The Traveling Energy Orb -->
+            <div id="orbital-orb" class="orbital-orb">
+                <div class="orb-core"></div>
+                <div class="orb-aura"></div>
             </div>
-            <div class="step-line" data-after="init"></div>
-            <div class="step" data-step="pm">
-                <div class="step-dot"></div>
-                <span class="step-label">PM</span>
+
+            <!-- Satellite Stations -->
+            <!-- The custom properties --angle control the position on the orbit circle -->
+            <div class="satellite" data-step="init" style="--angle: 200deg;">
+                <div class="satellite-node"></div>
+                <div class="satellite-label">INIT</div>
             </div>
-            <div class="step-line" data-after="pm"></div>
-            <div class="step" data-step="prd_approval">
-                <div class="step-dot"></div>
-                <span class="step-label">PRD Review</span>
+            <div class="satellite" data-step="pm" style="--angle: 225deg;">
+                <div class="satellite-node"></div>
+                <div class="satellite-label">PM</div>
             </div>
-            <div class="step-line" data-after="prd_approval"></div>
-            <div class="step" data-step="dev">
-                <div class="step-dot"></div>
-                <span class="step-label">Dev</span>
+            <div class="satellite" data-step="prd_approval" style="--angle: 250deg;">
+                <div class="satellite-node"></div>
+                <div class="satellite-label">PRD</div>
             </div>
-            <div class="step-line" data-after="dev"></div>
-            <div class="step" data-step="qa">
-                <div class="step-dot"></div>
-                <span class="step-label">QA</span>
+            <div class="satellite" data-step="dev" style="--angle: 275deg;">
+                <div class="satellite-node"></div>
+                <div class="satellite-label">DEV</div>
             </div>
-            <div class="step-line" data-after="qa"></div>
-            <div class="step" data-step="review_node">
-                <div class="step-dot"></div>
-                <span class="step-label">Review</span>
+            <div class="satellite" data-step="qa" style="--angle: 300deg;">
+                <div class="satellite-node"></div>
+                <div class="satellite-label">QA</div>
             </div>
-            <div class="step-line" data-after="review_node"></div>
-            <div class="step" data-step="build_approval">
-                <div class="step-dot"></div>
-                <span class="step-label">Build Approval</span>
+            <div class="satellite" data-step="review_node" style="--angle: 325deg;">
+                <div class="satellite-node"></div>
+                <div class="satellite-label">REVIEW</div>
             </div>
-            <div class="step-line" data-after="build_approval"></div>
-            <div class="step" data-step="done">
-                <div class="step-dot"></div>
-                <span class="step-label">Done</span>
+            <div class="satellite" data-step="build_approval" style="--angle: 350deg;">
+                <div class="satellite-node"></div>
+                <div class="satellite-label">BUILD</div>
+            </div>
+            <div class="satellite" data-step="done" style="--angle: 15deg;">
+                <div class="satellite-node"></div>
+                <div class="satellite-label">DONE</div>
             </div>
         </div>
     </div>
@@ -168,11 +176,11 @@
                         <div class="review-content" id="review-content">No review available</div>
                     </div>
                 </div>
-                <div class="card-footer">
-                    <button class="btn btn-danger" onclick="rejectBuild()">
+                <div class="card-footer" id="build-footer">
+                    <button class="btn btn-danger" id="btn-build-reject" onclick="rejectBuild()">
                         ✕ Reject
                     </button>
-                    <button class="btn btn-success" onclick="approveBuild()">
+                    <button class="btn btn-success" id="btn-build-approve" onclick="approveBuild()">
                         ✓ Approve Build
                     </button>
                 </div>
@@ -227,6 +235,19 @@
         </section>
 
     </main>
+
+    <!-- Log Window -->
+    <div class="log-window-container" id="log-window-container" style="display: none;">
+        <div class="log-window">
+            <div class="log-header">
+                <span>📁 Factory Logs</span>
+                <button class="log-toggle" onclick="toggleLogs()">—</button>
+            </div>
+            <div class="log-body" id="log-body">
+                <div class="log-line welcome">Factory initialized. Ready for input.</div>
+            </div>
+        </div>
+    </div>
 
     <script src="/static/js/app.js"></script>
 </body>

@@ -1,65 +1,191 @@
 import os
 import re
+import shutil
+
+
+def clear_workspace(base_path: str = "workspace"):
+    """Remove all files and directories in the workspace."""
+    if os.path.exists(base_path):
+        for filename in os.listdir(base_path):
+            file_path = os.path.join(base_path, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                print(f'Failed to delete {file_path}. Reason: {e}')
+    else:
+        os.makedirs(base_path, exist_ok=True)
+
+
+LOCKED_FILES = [
+    "build.gradle.kts",
+    "settings.gradle.kts",
+    "gradle.properties",
+    "gradlew",
+    "gradlew.bat",
+    "androidmain/androidmanifest.xml"
+]
+
+def _is_locked_file(path: str) -> bool:
+    normalized = path.lower().replace("\\", "/")
+    return any(norm_locked in normalized for norm_locked in LOCKED_FILES)
+
+
+def apply_patch(file_path: str, search_content: str, replace_content: str) -> bool:
+    """Read file, search for search_content, replace it with replace_content, and write back."""
+    if not os.path.exists(file_path):
+        print(f"├─ [FILE_SAVER] ❌ Patch failed: File does not exist: {file_path}")
+        return False
+        
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+            
+        # Standardize newlines for robust matching
+        content_std = content.replace("\r\n", "\n")
+        search_std = search_content.replace("\r\n", "\n")
+        replace_std = replace_content.replace("\r\n", "\n")
+        
+        if search_std not in content_std:
+            # Fallback to loose matching (stripping trailing/leading whitespaces per line)
+            print(f"├─ [FILE_SAVER] ⚠️ Exact patch match failed. Attempting line-normalized match...")
+            search_lines = [l.strip() for l in search_std.strip().split("\n") if l.strip()]
+            content_lines = content_std.split("\n")
+            
+            # Find matching sub-segment
+            matched = False
+            for i in range(len(content_lines) - len(search_lines) + 1):
+                sub_segment = [content_lines[j].strip() for j in range(i, i + len(search_lines))]
+                if sub_segment == search_lines:
+                    # Found! Let's reconstruct content
+                    content_std = "\n".join(content_lines[:i]) + "\n" + replace_std + "\n" + "\n".join(content_lines[i + len(search_lines):])
+                    matched = True
+                    break
+            
+            if not matched:
+                print(f"├─ [FILE_SAVER] ❌ Patch failed: Search block not found in {file_path}")
+                return False
+        else:
+            content_std = content_std.replace(search_std, replace_std, 1)
+            
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content_std)
+            
+        print(f"├─ [FILE_SAVER] 🩹 Patch applied successfully to: {file_path}")
+        return True
+    except Exception as e:
+        print(f"├─ [FILE_SAVER] ❌ Failed to apply patch: {e}")
+        return False
 
 
 def save_files(code_output: str, base_path: str = "workspace"):
-    """Parse LLM output with FILE: markers and save each file.
-
-    Expected format:
-        FILE: path/to/file.kt
-        <file content>
-
-        FILE: path/to/another.xml
-        <file content>
-    """
+    """Parse LLM output with FILE: markers and save or patch each file."""
+    # Ensure workspace exists
     os.makedirs(base_path, exist_ok=True)
+    
+    print(f"├─ [FILE_SAVER] 🔍 Analyzing {len(code_output)} chars of output...")
 
-    files = code_output.split("FILE:")
-
+    # Primary method: Split by FILE: marker
+    # We use a regex that matches "FILE:" at the start of a line or after a newline
+    file_blocks = re.split(r'(?m)^FILE:\s*', code_output)
     saved_files = []
 
-    for file in files:
-        if not file.strip():
+    for block in file_blocks:
+        if not block.strip():
             continue
+        
+        lines = block.split("\n")
+        raw_path = lines[0].strip().strip("*`[] \"':")
+        
+        if _is_valid_path(raw_path):
+            if _is_locked_file(raw_path):
+                print(f"├─ [FILE_SAVER] 🔒 Blocked write to locked file: {raw_path}")
+                continue
 
-        lines = file.strip().split("\n")
-        file_path = lines[0].strip()
+            block_body = "\n".join(lines[1:]).strip()
+            
+            # Check if this block is a PATCH block
+            if "<<<< SEARCH" in block_body:
+                # Parse search-replace blocks
+                # Look for <<<< SEARCH\n(.*?)\n==== REPLACE\n(.*?)\n>>>> END
+                patch_pattern = re.compile(r'<<<< SEARCH\n(.*?)\n==== REPLACE\n(.*?)\n>>>> END', re.DOTALL)
+                patches = patch_pattern.findall(block_body)
+                
+                if patches:
+                    full_path = os.path.join(base_path, raw_path)
+                    success_all = True
+                    for search_str, replace_str in patches:
+                        ok = apply_patch(full_path, search_str, replace_str)
+                        if not ok:
+                            success_all = False
+                    if success_all:
+                        saved_files.append(raw_path)
+                    continue
 
-        # Validate: skip if this doesn't look like a real file path
-        if not _is_valid_path(file_path):
-            # --- DEBUG (uncomment for debugging) ---
-            # print(f"├─ [FILE_SAVER] DEBUG skipping invalid path: {file_path[:80]}...")
-            continue
+            # Standard complete file generation/overwrite
+            content = block_body
+            match = re.search(r'```(?:\w+)?\n?(.*?)\n?```', content, re.DOTALL)
+            if match:
+                content = match.group(1).strip()
+            
+            full_path = os.path.join(base_path, raw_path)
+            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+            with open(full_path, "w") as f: 
+                f.write(content)
+            saved_files.append(raw_path)
 
-        content = "\n".join(lines[1:])
+    # Fallback method: If primary split didn't yield valid files, try a global regex find
+    if not saved_files:
+        print("├─ [FILE_SAVER] ⚠️  Primary parse failed. Attempting deep scan...")
+        # Regex to find FILE: markers and their following content until the next FILE: or end
+        pattern = re.compile(r'(?i)FILE:\s*([^\n]+)\n(.*?)(?=FILE:|$)', re.DOTALL)
+        matches = pattern.findall(code_output)
+        
+        for raw_path, content in matches:
+            raw_path = raw_path.strip().strip("*`[] \"':")
+            if _is_valid_path(raw_path):
+                if _is_locked_file(raw_path):
+                    print(f"├─ [FILE_SAVER] 🔒 Blocked write to locked file: {raw_path}")
+                    continue
 
-        full_path = os.path.join(base_path, file_path)
+                content_str = content.strip()
+                if "<<<< SEARCH" in content_str:
+                    # Fallback patch
+                    patch_pattern = re.compile(r'<<<< SEARCH\n(.*?)\n==== REPLACE\n(.*?)\n>>>> END', re.DOTALL)
+                    patches = patch_pattern.findall(content_str)
+                    if patches:
+                        full_path = os.path.join(base_path, raw_path)
+                        success_all = True
+                        for search_str, replace_str in patches:
+                            ok = apply_patch(full_path, search_str, replace_str)
+                            if not ok:
+                                success_all = False
+                        if success_all:
+                            saved_files.append(raw_path)
+                        continue
 
-        os.makedirs(os.path.dirname(full_path), exist_ok=True)
+                # Clean content (strip code blocks)
+                match = re.search(r'```(?:\w+)?\n?(.*?)\n?```', content, re.DOTALL)
+                if match:
+                    content_str = match.group(1).strip()
+                
+                full_path = os.path.join(base_path, raw_path)
+                os.makedirs(os.path.dirname(full_path), exist_ok=True)
+                with open(full_path, "w") as f: 
+                    f.write(content_str)
+                saved_files.append(raw_path)
 
-        with open(full_path, "w") as f:
-            f.write(content)
-
-        saved_files.append(full_path)
-
-    # --- DEBUG (uncomment for debugging) ---
-    # print(f"├─ [FILE_SAVER] DEBUG saved {len(saved_files)} files: {saved_files}")
-
+    print(f"├─ [FILE_SAVER] ✅ Saved {len(saved_files)} files: {saved_files}")
     return saved_files
 
 
 def _is_valid_path(path: str) -> bool:
-    """Check if a string looks like a valid file path vs. prose text."""
-    # Too long for a file path
-    if len(path) > 200:
+    """Check if a string looks like a valid file path."""
+    if not path or len(path) > 250:
         return False
-    # Must contain a dot (file extension) somewhere
-    if "." not in path:
-        return False
-    # Should not contain multiple spaces (prose indicator)
-    if "  " in path or path.count(" ") > 3:
-        return False
-    # Should match a path-like pattern (letters, numbers, slashes, dots, dashes, underscores)
-    if not re.match(r'^[\w\s./\\-]+$', path):
+    # Should look like a path (slashes, dots, alphanumeric)
+    if not re.search(r'^[\w/\\.-]+$', path):
         return False
     return True

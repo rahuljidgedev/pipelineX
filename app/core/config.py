@@ -18,5 +18,7 @@ if dotenv_local.is_file():
 class Settings:
     # Use .strip() to handle any accidental spaces
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY").strip() if os.getenv("OPENAI_API_KEY") else None
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY").strip() if os.getenv("GEMINI_API_KEY") else None
+    LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai").strip().lower()
 
 settings = Settings()

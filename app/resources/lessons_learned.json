@@ -1,0 +1,27 @@
+[
+  {
+    "id": "ban-wildcards",
+    "category": "imports",
+    "lesson": "Never use wildcard imports (e.g. import androidx.compose.foundation.layout.*). Explicitly declare every class to satisfy ktlint."
+  },
+  {
+    "id": "ban-basictextfield",
+    "category": "compose",
+    "lesson": "Never use BasicTextField. Always use OutlinedTextField or TextField from androidx.compose.material3 to avoid decorationBox crashes."
+  },
+  {
+    "id": "dropdown-menu-item-text",
+    "category": "compose",
+    "lesson": "In Material 3, DropdownMenuItem does not take a trailing content lambda. Use DropdownMenuItem(text = { Text(...) }, onClick = { ... })."
+  },
+  {
+    "id": "no-placeholders",
+    "category": "auditor",
+    "lesson": "Never leave // TODO or placeholder comments. Every feature in the PRD must have working, fully implemented Compose UI components."
+  },
+  {
+    "id": "core-icons-only",
+    "category": "compose",
+    "lesson": "Only use absolute core icons like List, Settings, Check, Add, Delete, Person. Do not use extended icons like Analytics or CalendarToday without explicitly updating build.gradle.kts."
+  }
+]

@@ -1,9 +1,10 @@
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from app.graph.main_graph import build_graph
+from app.telemetry.event_bus import domino_event_bus
 from langgraph.types import Command
 import os
 import uuid
@@ -19,8 +20,10 @@ app.add_middleware(
 
 graph = build_graph()
 
-# Track running threads to differentiate between "Idle/Paused" and "Running"
+# Track running threads, active nodes, and errors
 running_threads = set()
+active_nodes = {}
+thread_errors = {}
 
 # --- Pydantic Models ---
 class PRDUpdate(BaseModel):
@@ -32,16 +35,23 @@ def run_graph_background(thread_id: str, inputs=None, is_resume=False):
     config = {"configurable": {"thread_id": thread_id}}
     try:
         running_threads.add(thread_id)
-        if is_resume:
-            # inputs here is the resume value
-            for event in graph.stream(Command(resume=inputs), config=config):
-                pass
-        else:
-            for event in graph.stream(inputs, config=config):
-                pass
+        
+        # Use streaming to track current node
+        stream_it = graph.stream(Command(resume=inputs), config=config) if is_resume else graph.stream(inputs, config=config)
+        
+        for event in stream_it:
+            for node_name in event.keys():
+                active_nodes[thread_id] = node_name
+    except Exception as e:
+        import traceback
+        error_msg = f"{str(e)}\n{traceback.format_exc()}"
+        thread_errors[thread_id] = error_msg
+        print(f"❌ [API] Thread {thread_id} CRASHED: {e}")
     finally:
         if thread_id in running_threads:
             running_threads.remove(thread_id)
+        if thread_id in active_nodes:
+            del active_nodes[thread_id]
 
 # --- Serve Frontend ---
 app.mount("/static", StaticFiles(directory="app/frontend"), name="static")
@@ -49,12 +59,24 @@ app.mount("/static", StaticFiles(directory="app/frontend"), name="static")
 
 @app.get("/")
 def serve_frontend():
-    return FileResponse("app/frontend/index.html")
+    return FileResponse(
+        "app/frontend/index.html",
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+    )
+
+@app.get("/api/v1/stream")
+async def stream_domino_events():
+    """Server-Sent Events (SSE) endpoint for Domino UI."""
+    return StreamingResponse(domino_event_bus.subscribe(), media_type="text/event-stream")
 
 
 # --- Pipeline Endpoints ---
 
-@app.post("/start")
+@app.api_route("/start", methods=["GET", "POST"])
 def start_pipeline(idea: str, background_tasks: BackgroundTasks):
     thread_id = str(uuid.uuid4())
 
@@ -66,7 +88,7 @@ def start_pipeline(idea: str, background_tasks: BackgroundTasks):
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
     # Start in background
-    background_tasks.add_task(run_graph_background, thread_id, {"idea": idea})
+    background_tasks.add_task(run_graph_background, thread_id, {"idea": idea, "thread_id": thread_id})
 
     return {
         "status": "started",
@@ -82,16 +104,18 @@ def get_status(thread_id: str):
     state = dict(snapshot.values) if snapshot.values else {}
     next_nodes = list(snapshot.next) if snapshot.next else []
     
-    # If there are no 'next' nodes and it's not in running_threads, it's actually finished
-    # If it is in running_threads, it is 'busy'
     is_running = thread_id in running_threads
+    active_node = active_nodes.get(thread_id)
+    error = thread_errors.get(thread_id)
     
     return {
         "thread_id": thread_id,
         "state": state,
         "next": next_nodes,
+        "active_node": active_node,
+        "error": error,
         "is_running": is_running,
-        "is_completed": len(next_nodes) == 0 and not is_running and len(state) > 0
+        "is_completed": len(next_nodes) == 0 and not is_running and len(state) > 0 and not error
     }
 
 
@@ -103,7 +127,7 @@ def update_prd(thread_id: str, body: PRDUpdate):
     return {"status": "updated"}
 
 
-@app.post("/approve/{thread_id}")
+@app.api_route("/approve/{thread_id}", methods=["GET", "POST"])
 def approve(thread_id: str, approved: bool, background_tasks: BackgroundTasks):
     status = "APPROVED" if approved else "REJECTED"
     print("│")

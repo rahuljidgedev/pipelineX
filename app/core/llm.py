@@ -1,26 +1,61 @@
 from openai import OpenAI
+from google import genai
 from app.core.config import settings
 import os
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
-api_key = settings.OPENAI_API_KEY
+provider = settings.LLM_PROVIDER
 
-if not api_key:
-    raise ValueError("OPENAI_API_KEY is missing!")
+openai_client = None
+gemini_client = None
 
-client = OpenAI(api_key=api_key)
+if provider == "openai":
+    if not settings.OPENAI_API_KEY:
+        raise ValueError("OPENAI_API_KEY is missing!")
+    openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
+elif provider == "gemini":
+    if not settings.GEMINI_API_KEY:
+        raise ValueError("GEMINI_API_KEY is missing!")
+    gemini_client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=2, max=10),
+    reraise=True
+)
 def call_llm(prompt: str, max_tokens: int = 1000) -> str:
     try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                    {"role": "system", "content": "You are a senior software engineer."},
-                    {"role": "user", "content": prompt}
-                ],
-            temperature=0.3,
-            max_tokens= max_tokens
-        )
-        return response.choices[0].message.content
+        if provider == "gemini":
+            print(f"    📡 [LLM] Calling gemini-flash-latest via SDK (max_tokens={max_tokens})...")
+            response = gemini_client.models.generate_content(
+                model='gemini-flash-latest',
+                contents=prompt,
+                config=genai.types.GenerateContentConfig(
+                    system_instruction="You are a seasoned senior software engineer.",
+                    temperature=0.3,
+                    max_output_tokens=max_tokens,
+                )
+            )
+            content = response.text
+        else:
+            print(f"    📡 [LLM] Calling gpt-4o (max_tokens={max_tokens})...")
+            response = openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                        {"role": "system", "content": "You are a senior software engineer."},
+                        {"role": "user", "content": prompt}
+                    ],
+                temperature=0.3,
+                max_tokens=max_tokens
+            )
+            content = response.choices[0].message.content
+            
+        if not content:
+            raise RuntimeError("LLM returned empty response")
+        print(f"    ✅ [LLM] Response received ({len(content)} chars)")
+        return content
 
     except Exception as e:
-        return f"LLM Error: {str(e)}"
+        error_msg = f"LLM call failed: {str(e)}"
+        print(f"    ❌ [LLM] {error_msg}")
+        raise RuntimeError(error_msg) from e
