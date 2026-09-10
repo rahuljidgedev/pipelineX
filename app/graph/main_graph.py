@@ -160,8 +160,8 @@ def build_graph(checkpointer=None):
         attempts = state.get("attempts", 0)
         logs = log_event(state, "│")
         if error_logs:
-            logs = log_event({**state, **logs}, f"├─ [ROUTER] 🔄 QA → DEV (Retry {attempts}/10)")
-            logs = log_event({**state, **logs}, f"├─ [DEV] 🔧 Started — fixing KMP code (Retry {attempts})...")
+            logs = log_event({**state, **logs}, f"├─ [ROUTER] 🔄 REJECTED → DEV (Retry {attempts})")
+            logs = log_event({**state, **logs}, f"├─ [DEV] 🔧 Started — fixing KMP code (Attempt {attempts + 1})...")
         else:
             logs = log_event({**state, **logs}, "├─ [DEV] 💻 Started — generating complete KMP code...")
         return {"logs": logs["logs"]}
@@ -170,7 +170,7 @@ def build_graph(checkpointer=None):
         attempts = (state.get("attempts") or 0) + 1
         logs = log_event(state, "│")
         attempt_label = "Initial Build" if attempts == 1 else f"Retry {attempts-1}"
-        logs = log_event({**state, **logs}, f"├─ [QA] 🧪 Started — validating {attempt_label} (Attempt {attempts}/10)...")
+        logs = log_event({**state, **logs}, f"├─ [QA] 🧪 Started — validating {attempt_label} (Attempt {attempts}/4)...")
         return {"logs": logs["logs"]}
 
     def pre_review(state):
