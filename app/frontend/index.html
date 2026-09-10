@@ -25,111 +25,23 @@
         <div class="header-meta" id="header-meta"></div>
     </header>
 
-    <!-- App Layout for side-by-side Stepper and Main -->
-    <div class="app-layout">
-        
-        <!-- Pipeline Stepper -->
-        <!-- Stepper Container -->
-    <div id="stepper-container" class="vertical-stepper-container" style="display: none;">
-        <div class="stepper-track"></div>
-        
-        <div class="step-item" data-step="init">
-            <div class="step-indicator"></div>
-            <div class="step-content">
-                <div class="step-title">INIT</div>
-                <div class="step-logs" id="logs-init"></div>
-            </div>
-        </div>
-        <div class="step-item" data-step="ideation_node">
-            <div class="step-indicator"></div>
-            <div class="step-content">
-                <div class="step-title">IDEATION</div>
-                <div class="step-logs" id="logs-ideation_node"></div>
-            </div>
-        </div>
-        <div class="step-item" data-step="pm">
-            <div class="step-indicator"></div>
-            <div class="step-content">
-                <div class="step-title">PM</div>
-                <div class="step-logs" id="logs-pm"></div>
-            </div>
-        </div>
-        <div class="step-item" data-step="prd_approval">
-            <div class="step-indicator"></div>
-            <div class="step-content">
-                <div class="step-title">PRD</div>
-                <div class="step-logs" id="logs-prd_approval"></div>
-            </div>
-        </div>
-        <div class="step-item" data-step="dev">
-            <div class="step-indicator"></div>
-            <div class="step-content">
-                <div class="step-title">DEV</div>
-                <div class="step-logs" id="logs-dev"></div>
-            </div>
-        </div>
-        <div class="step-item" data-step="qa">
-            <div class="step-indicator"></div>
-            <div class="step-content">
-                <div class="step-title">QA</div>
-                <div class="step-logs" id="logs-qa"></div>
-            </div>
-        </div>
-        <div class="step-item" data-step="ast_node">
-            <div class="step-indicator"></div>
-            <div class="step-content">
-                <div class="step-title">AST</div>
-                <div class="step-logs" id="logs-ast_node"></div>
-            </div>
-        </div>
-        <div class="step-item" data-step="auditor_node">
-            <div class="step-indicator"></div>
-            <div class="step-content">
-                <div class="step-title">AUDIT</div>
-                <div class="step-logs" id="logs-auditor_node"></div>
-            </div>
-        </div>
-        <div class="step-item" data-step="review_node">
-            <div class="step-indicator"></div>
-            <div class="step-content">
-                <div class="step-title">REVIEW</div>
-                <div class="step-logs" id="logs-review_node"></div>
-            </div>
-        </div>
-        <div class="step-item" data-step="build_approval">
-            <div class="step-indicator"></div>
-            <div class="step-content">
-                <div class="step-title">BUILD</div>
-                <div class="step-logs" id="logs-build_approval"></div>
-            </div>
-        </div>
-        <div class="step-item" data-step="compliance_node">
-            <div class="step-indicator"></div>
-            <div class="step-content">
-                <div class="step-title">COMPLY</div>
-                <div class="step-logs" id="logs-compliance_node"></div>
-            </div>
-        </div>
-        <div class="step-item" data-step="packaging_node">
-            <div class="step-indicator"></div>
-            <div class="step-content">
-                <div class="step-title">PACKAGE</div>
-                <div class="step-logs" id="logs-packaging_node"></div>
-            </div>
-        </div>
-        <div class="step-item" data-step="deployment_node">
-            <div class="step-indicator"></div>
-            <div class="step-content">
-                <div class="step-title">LAUNCH</div>
-                <div class="step-logs" id="logs-deployment_node"></div>
-            </div>
-        </div>
-        <div class="step-item" data-step="done">
-            <div class="step-indicator"></div>
-            <div class="step-content">
-                <div class="step-title">DONE</div>
-                <div class="step-logs" id="logs-done"></div>
-            </div>
+    <!-- Pipeline Stepper -->
+    <div class="stepper-container" id="stepper-container" style="display: none;">
+        <div class="stepper">
+            <div class="step" data-step="init"><div class="step-dot"></div><span class="step-label">INIT</span></div><div class="step-line" data-after="init"></div>
+            <div class="step" data-step="ideation_node"><div class="step-dot"></div><span class="step-label">IDEATION</span></div><div class="step-line" data-after="ideation_node"></div>
+            <div class="step" data-step="pm"><div class="step-dot"></div><span class="step-label">PM</span></div><div class="step-line" data-after="pm"></div>
+            <div class="step" data-step="prd_approval"><div class="step-dot"></div><span class="step-label">PRD</span></div><div class="step-line" data-after="prd_approval"></div>
+            <div class="step" data-step="dev"><div class="step-dot"></div><span class="step-label">DEV</span></div><div class="step-line" data-after="dev"></div>
+            <div class="step" data-step="qa"><div class="step-dot"></div><span class="step-label">QA</span></div><div class="step-line" data-after="qa"></div>
+            <div class="step" data-step="ast_node"><div class="step-dot"></div><span class="step-label">AST</span></div><div class="step-line" data-after="ast_node"></div>
+            <div class="step" data-step="auditor_node"><div class="step-dot"></div><span class="step-label">AUDIT</span></div><div class="step-line" data-after="auditor_node"></div>
+            <div class="step" data-step="review_node"><div class="step-dot"></div><span class="step-label">REVIEW</span></div><div class="step-line" data-after="review_node"></div>
+            <div class="step" data-step="build_approval"><div class="step-dot"></div><span class="step-label">BUILD</span></div><div class="step-line" data-after="build_approval"></div>
+            <div class="step" data-step="compliance_node"><div class="step-dot"></div><span class="step-label">COMPLY</span></div><div class="step-line" data-after="compliance_node"></div>
+            <div class="step" data-step="packaging_node"><div class="step-dot"></div><span class="step-label">PACKAGE</span></div><div class="step-line" data-after="packaging_node"></div>
+            <div class="step" data-step="deployment_node"><div class="step-dot"></div><span class="step-label">LAUNCH</span></div><div class="step-line" data-after="deployment_node"></div>
+            <div class="step" data-step="done"><div class="step-dot"></div><span class="step-label">DONE</span></div>
         </div>
     </div>
 

@@ -53,16 +53,17 @@ function updateStepper(activeStep) {
     const activeIdx = STEP_ORDER.indexOf(activeStep);
     if (activeIdx === -1) return;
 
-    // A small delay function for the ripple effect when falling
-    const delay = ms => new Promise(res => setTimeout(res, ms));
-
     STEP_ORDER.forEach((step, i) => {
-        const el = document.querySelector(`.step-item[data-step="${step}"]`);
+        const el = document.querySelector(`.step[data-step="${step}"]`);
+        const line = document.querySelector(`.step-line[data-after="${step}"]`);
         if (!el) return;
 
         el.classList.remove('completed', 'active');
+        if (line) line.classList.remove('completed');
+
         if (i < activeIdx) {
             el.classList.add('completed');
+            if (line) line.classList.add('completed');
         } else if (i === activeIdx) {
             el.classList.add('active');
         }
@@ -143,6 +144,7 @@ async function startPipeline() {
     document.getElementById('header-meta').textContent = app.projectName;
 
     showStepper(true);
+    document.getElementById('log-window-container').style.display = '';
     showLoading('Starting Pipeline...', 'Initializing agents');
 
     try {
@@ -416,8 +418,10 @@ function resetApp() {
     document.getElementById('input-idea').value = '';
     document.getElementById('header-meta').textContent = '';
     
-    // Clear all step logs
-    document.querySelectorAll('.step-logs').forEach(el => el.innerHTML = '');
+    const logBody = document.getElementById('log-body');
+    if (logBody) logBody.innerHTML = '<div class="log-line welcome">Factory initialized. Ready for input.</div>';
+    
+    document.getElementById('log-window-container').style.display = 'none';
     
     showStepper(false);
     showScreen('start');
@@ -426,19 +430,16 @@ function resetApp() {
 // --- Log Helpers ---
 
 function addLogLine(text) {
-    let containerId = 'logs-init';
-    if (app.lastActiveNode) {
-        containerId = 'logs-' + app.lastActiveNode;
-    }
-    const container = document.getElementById(containerId);
+    const container = document.getElementById('log-body');
     if (!container) return;
 
     const line = document.createElement('div');
     line.className = 'log-line';
     
-    if (text.includes('✅') || text.includes('successfully')) line.style.color = '#34d399';
-    else if (text.includes('❌') || text.includes('failed') || text.includes('error')) line.style.color = '#f87171';
-    else if (text.includes('Started')) line.style.color = '#60a5fa';
+    if (text.includes('✅') || text.includes('successfully')) line.className += ' success';
+    else if (text.includes('❌') || text.includes('failed') || text.includes('error')) line.className += ' error';
+    else if (text.includes('Started')) line.className += ' welcome';
+    else line.className += ' info';
 
     line.textContent = text;
     container.appendChild(line);
@@ -447,5 +448,12 @@ function addLogLine(text) {
 }
 
 function toggleLogs() {
-    // Legacy global log toggle is removed
+    const body = document.getElementById('log-body');
+    if (app.logsMinimized) {
+        body.style.display = 'flex';
+        app.logsMinimized = false;
+    } else {
+        body.style.display = 'none';
+        app.logsMinimized = true;
+    }
 }
