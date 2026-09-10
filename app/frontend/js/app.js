@@ -46,20 +46,34 @@ function showStepper(show) {
 // Pipeline Stepper
 // =====================
 
-function updateStepper(activeStep) {
-    if (app.lastActiveNode === activeStep) return;
+function updateStepper(activeStep, state = {}) {
+    // We update if the step changes, or if we are at build_approval (where state.test_result matters)
     app.lastActiveNode = activeStep;
 
     const activeIdx = STEP_ORDER.indexOf(activeStep);
     if (activeIdx === -1) return;
+    
+    const isQaFailure = (activeStep === 'build_approval' && state.test_result === 'fail');
+    const skippedSteps = ['ast_node', 'auditor_node', 'review_node'];
 
     STEP_ORDER.forEach((step, i) => {
         const el = document.querySelector(`.step[data-step="${step}"]`);
         const line = document.querySelector(`.step-line[data-after="${step}"]`);
         if (!el) return;
 
-        el.classList.remove('completed', 'active');
+        el.classList.remove('completed', 'active', 'failed');
         if (line) line.classList.remove('completed');
+
+        if (isQaFailure) {
+            if (step === 'qa') {
+                el.classList.add('failed');
+                if (line) line.classList.remove('completed');
+                return;
+            }
+            if (skippedSteps.includes(step)) {
+                return;
+            }
+        }
 
         if (i < activeIdx) {
             el.classList.add('completed');
@@ -189,7 +203,7 @@ function handleStatusUpdate(status) {
 
     if (status.is_completed) {
         stopPolling();
-        updateStepper('done');
+        updateStepper('done', state);
         
         // If the user rejected/cancelled, show the cancelled screen instead of complete
         if (state.last_approval === false) {
@@ -212,14 +226,14 @@ function handleStatusUpdate(status) {
 
     // 1. If waiting for PRD Approval
     if (next.includes('prd_approval') && !isRunning) {
-        updateStepper('prd_approval');
+        updateStepper('prd_approval', state);
         showPrdReview(state.prd || 'No PRD generated.');
         return;
     }
 
     // 2. If waiting for Build Approval
     if (next.includes('build_approval') && !isRunning) {
-        updateStepper('build_approval');
+        updateStepper('build_approval', state);
         showBuildApproval(state);
         return;
     }
@@ -260,7 +274,7 @@ function handleStatusUpdate(status) {
             else if (state.idea) activeNode = 'ideation_node'; 
         }
         
-        updateStepper(activeNode);
+        updateStepper(activeNode, state);
         
         // Show loading screen with context
         const labels = {

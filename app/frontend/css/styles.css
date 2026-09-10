@@ -220,6 +220,29 @@ body {
     color: var(--text-secondary);
 }
 
+
+.step.failed .step-dot {
+    border-color: var(--danger);
+    background: var(--danger);
+    box-shadow: 0 0 16px var(--danger-bg);
+}
+
+.step.failed .step-dot::after {
+    content: '✕';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: white;
+    font-weight: 700;
+}
+
+.step.failed .step-label {
+    color: var(--danger);
+}
+
 .step-line {
     width: 40px;
     height: 2px;
