@@ -2,7 +2,7 @@ import os
 import re
 import shutil
 from app.tools.workspace_registry import register_app
-from app.core.constants import WORKSPACE_DIR
+from app.core.constants import WORKSPACE_DIR, KMP_GOLDEN_TEMPLATE_DIR, DEFAULT_PACKAGE_PREFIX, DEFAULT_APP_TITLE
 
 def slugify(text: str) -> str:
     """Convert arbitrary text into a clean alphanumeric slug (no special chars)."""
@@ -31,10 +31,10 @@ def generate_project_metadata(idea: str):
         
     app_title = " ".join([word.capitalize() for word in re.sub(r'[^a-zA-Z0-9\s]', ' ', idea).strip().split()])
     if not app_title:
-        app_title = "KMP Application"
+        app_title = DEFAULT_APP_TITLE
         
-    package_name = f"com.example.{slug}"
-    namespace = f"com.example.{slug}"
+    package_name = f"{DEFAULT_PACKAGE_PREFIX}{slug}"
+    namespace = f"{DEFAULT_PACKAGE_PREFIX}{slug}"
     
     return {
         "app_id": slug,
@@ -88,7 +88,7 @@ def seed_custom_workspace(idea: str, target_workspace: str = WORKSPACE_DIR):
         os.makedirs(app_dir, exist_ok=True)
     
     # 2. Source template base path
-    template_path = "app/resources/kmp_golden_template"
+    template_path = KMP_GOLDEN_TEMPLATE_DIR
     if not os.path.exists(template_path):
         print(f"├─ [CUSTOMIZER] ⚠️ Golden template not found at {template_path}. Creating fallback template structure...")
         _create_fallback_golden_template(template_path)

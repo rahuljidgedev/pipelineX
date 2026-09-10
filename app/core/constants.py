@@ -44,3 +44,14 @@ GRADLE_BUILD_TIMEOUT_SEC = 600
 # API Config
 API_DEFAULT_PORT = 8000
 API_DEFAULT_HOST = "0.0.0.0"
+
+# Resource Paths
+FRONTEND_DIR = "app/frontend"
+FRONTEND_INDEX_HTML = "app/frontend/index.html"
+LESSONS_LEARNED_FILE = "app/resources/lessons_learned.json"
+GRADLE_TEMPLATE_DIR = "app/resources/gradle_template"
+KMP_GOLDEN_TEMPLATE_DIR = "app/resources/kmp_golden_template"
+
+# Package Defaults
+DEFAULT_PACKAGE_PREFIX = "com.example."
+DEFAULT_APP_TITLE = "KMP Application"

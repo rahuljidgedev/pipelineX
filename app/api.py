@@ -4,7 +4,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from app.graph.main_graph import build_graph
-from app.core.constants import WORKSPACE_DIR
+from app.core.constants import WORKSPACE_DIR, FRONTEND_DIR, FRONTEND_INDEX_HTML
 from app.telemetry.event_bus import domino_event_bus
 from langgraph.types import Command
 import os
@@ -55,13 +55,13 @@ def run_graph_background(thread_id: str, inputs=None, is_resume=False):
             del active_nodes[thread_id]
 
 # --- Serve Frontend ---
-app.mount("/static", StaticFiles(directory="app/frontend"), name="static")
+app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 
 @app.get("/")
 def serve_frontend():
     return FileResponse(
-        "app/frontend/index.html",
+        FRONTEND_INDEX_HTML,
         headers={
             "Cache-Control": "no-cache, no-store, must-revalidate",
             "Pragma": "no-cache",

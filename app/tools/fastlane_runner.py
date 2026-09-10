@@ -1,7 +1,7 @@
 import os
 import subprocess
 from app.core.logger import log_event
-from app.core.constants import WORKSPACE_DIR
+from app.core.constants import WORKSPACE_DIR, DEFAULT_PACKAGE_PREFIX
 from app.telemetry.factory_logger import emit_factory_event
 from app.core.config import settings
 
@@ -51,7 +51,7 @@ def deployment_node(state):
     logs = log_event({**state, **logs}, "├─ [DEPLOY] 🚀 Preparing Fastlane Deployment...")
     
     project_path = os.path.join(os.getcwd(), WORKSPACE_DIR, "apps", target_app_id)
-    package_name = f"com.example.{target_app_id.replace('-', '_')}"
+    package_name = f"{DEFAULT_PACKAGE_PREFIX}{target_app_id.replace('-', '_')}"
     
     _ensure_fastlane_setup(project_path, package_name)
     

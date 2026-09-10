@@ -1,11 +1,11 @@
-from app.core.constants import GRADLE_BUILD_TIMEOUT_SEC, JAVA_17_PATH, JAVA_JBR_PATH, JAVA_DEFAULT_FALLBACK, ANDROID_HOME_PATHS
+from app.core.constants import GRADLE_BUILD_TIMEOUT_SEC, JAVA_17_PATH, JAVA_JBR_PATH, JAVA_DEFAULT_FALLBACK, ANDROID_HOME_PATHS, GRADLE_TEMPLATE_DIR
 import subprocess
 import os
 import shutil
 
 def setup_gradle_wrapper(project_path: str):
     """Copy the modern Gradle wrapper from templates to the project workspace."""
-    template_path = "app/resources/gradle_template"
+    template_path = GRADLE_TEMPLATE_DIR
     if not os.path.exists(template_path):
         print(f"├─ [BUILDER] ⚠️  Gradle template not found at {template_path}")
         return False

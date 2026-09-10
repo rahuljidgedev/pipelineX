@@ -5,7 +5,7 @@ from app.core.logger import log_event
 from app.telemetry.factory_logger import emit_factory_event
 from app.telemetry.translator import translate_to_domino_ticker
 from app.tools.workspace_customizer import seed_custom_workspace, generate_project_metadata
-from app.core.constants import PipelineMode, LLM_MAX_TOKENS_DEV
+from app.core.constants import PipelineMode, LLM_MAX_TOKENS_DEV, LESSONS_LEARNED_FILE
 
 def dev_agent(state):
     error_logs = state.get("error_logs")
@@ -56,7 +56,7 @@ def dev_agent(state):
     """
 
     lessons_block = ""
-    lessons_file = "app/resources/lessons_learned.json"
+    lessons_file = LESSONS_LEARNED_FILE
     if os.path.exists(lessons_file):
         try:
             with open(lessons_file, "r") as f:

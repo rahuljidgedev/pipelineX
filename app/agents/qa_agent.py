@@ -1,5 +1,5 @@
 from app.tools.file_saver import save_files
-from app.core.constants import DEFAULT_MODEL_SMART, DEFAULT_MODEL_FAST, WORKSPACE_DIR, LLM_MAX_TOKENS_QA_REFLECTION
+from app.core.constants import DEFAULT_MODEL_SMART, DEFAULT_MODEL_FAST, WORKSPACE_DIR, LLM_MAX_TOKENS_QA_REFLECTION, LESSONS_LEARNED_FILE
 from app.core.logger import log_event
 from app.telemetry.factory_logger import emit_factory_event
 from app.telemetry.translator import translate_to_domino_ticker
@@ -129,7 +129,7 @@ def qa_agent(state):
                 try:
                     lesson_text = call_llm(reflection_prompt, max_tokens=LLM_MAX_TOKENS_QA_REFLECTION).strip()
                     if lesson_text:
-                        lessons_file = "app/resources/lessons_learned.json"
+                        lessons_file = LESSONS_LEARNED_FILE
                         if os.path.exists(lessons_file):
                             with open(lessons_file, "r") as f:
                                 lessons = json.load(f)
