@@ -47,7 +47,17 @@ def ast_checker_node(state):
         jrc = json.loads(jrc_str)
         failed_requirements = []
         
-        code_lower = code.lower()
+        import os, glob
+        full_code = ""
+        workspace_dir = os.path.join(os.getcwd(), "workspace", "apps")
+        if os.path.exists(workspace_dir):
+            for filepath in glob.glob(os.path.join(workspace_dir, "**", "*.kt"), recursive=True):
+                with open(filepath, "r", encoding="utf-8") as f:
+                    full_code += f.read() + "\n"
+        if not full_code.strip():
+            full_code = code
+            
+        code_lower = full_code.lower()
         
         for req in jrc.get("functional_requirements", []):
             indicators = req.get("ui_indicators", [])
@@ -61,6 +71,7 @@ def ast_checker_node(state):
             logs = log_event({**state, **logs}, f"├─ [AST] ❌ FAILED — Missing structural elements: {len(failed_requirements)}")
             
             error_msg = "AST CHECKER FAILED: The code is missing the following UI indicators:\n" + "\n".join(failed_requirements)
+            print(f"├─ [AST_DEBUG] {error_msg}")
             
             emit_factory_event(
                 run_id=thread_id,
