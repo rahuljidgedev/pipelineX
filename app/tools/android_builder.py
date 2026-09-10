@@ -43,7 +43,11 @@ def run_gradle_build(project_path: str, app_id: str = None):
     env = os.environ.copy()
     
     # Priority: System ENV -> Common Linux locations -> Fallback
-    if "JAVA_HOME" not in env:
+    # Priority: Specific Android Studio JBR -> Common Linux locations -> System ENV
+    jbr_path = "/home/ekalpa/ide/android-studio-panda4/jbr"
+    if os.path.exists(jbr_path):
+        env["JAVA_HOME"] = jbr_path
+    elif "JAVA_HOME" not in env:
         for candidate in ["/usr/lib/jvm/java-17-openjdk-amd64", "/usr/lib/jvm/default-java"]:
             if os.path.exists(candidate):
                 env["JAVA_HOME"] = candidate

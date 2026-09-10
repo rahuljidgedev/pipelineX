@@ -78,7 +78,7 @@ def qa_agent(state):
     if not static_result["success"]:
         test_result = "fail"
         print(f"├─ [QA_DEBUG] Static Analysis FAILED! Return code: {static_result.get('returncode', 'Unknown')}")
-        final_logs = log_event(state, f"├─ [QA] ❌ Failed — Static Analysis error (attempt {attempts}/10)")
+        final_logs = log_event(state, f"├─ [QA] ❌ Failed — Static Analysis error (attempt {attempts}/4)")
         
         full_logs = f"STATIC ANALYSIS ERROR (ktlint/detekt):\n{static_result.get('error', '')}\n{static_result.get('output', '')}"
         error_logs = "...[Logs truncated]...\n" + full_logs[-4000:] if len(full_logs) > 4000 else full_logs
@@ -107,7 +107,7 @@ def qa_agent(state):
         if build_result["success"]:
             test_result = "pass"
             print(f"├─ [QA_DEBUG] Build SUCCESS!")
-            final_logs = log_event(state, f"├─ [QA] ✅ Passed — Project compiled successfully (attempt {attempts}/10)")
+            final_logs = log_event(state, f"├─ [QA] ✅ Passed — Project compiled successfully (attempt {attempts}/4)")
             
             # --- AUTONOMOUS REFLECTION ENGINE ---
             if attempts > 1 and state.get("error_logs"):
@@ -168,7 +168,7 @@ def qa_agent(state):
         else:
             test_result = "fail"
             print(f"├─ [QA_DEBUG] Build FAILED! Return code: {build_result.get('returncode', 'Unknown')}")
-            final_logs = log_event(state, f"├─ [QA] ❌ Failed — Compilation error (attempt {attempts}/10)")
+            final_logs = log_event(state, f"├─ [QA] ❌ Failed — Compilation error (attempt {attempts}/4)")
             
             full_logs = f"COMPILATION ERROR:\n{build_result.get('error', '')}\n{build_result.get('output', '')}"
             error_logs = "...[Logs truncated]...\n" + full_logs[-4000:] if len(full_logs) > 4000 else full_logs
