@@ -200,9 +200,22 @@ body {
 
 .step.active .step-dot {
     border-color: var(--accent-cyan);
-    background: var(--accent-cyan);
+    background: transparent;
     box-shadow: 0 0 16px var(--accent-cyan-glow);
-    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.step.active .step-dot::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    animation: blink-dot 1.2s ease-in-out infinite;
+}
+
+@keyframes blink-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.2; transform: scale(0.7); }
 }
 
 .step-label {
