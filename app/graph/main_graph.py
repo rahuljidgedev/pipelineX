@@ -14,7 +14,7 @@ from app.tools.fastlane_runner import deployment_node
 from app.agents.ideation_agent import ideation_filter_node
 from app.agents.marketing_agent import marketing_agent
 from app.tools.packaging_node import packaging_node
-from app.core.constants import PipelineMode
+from app.core.constants import PipelineMode, MAX_QA_ATTEMPTS, MAX_AST_ATTEMPTS, MAX_AUDITOR_ATTEMPTS
 from langgraph.checkpoint.sqlite import SqliteSaver
 
 class State(TypedDict, total=False):
@@ -51,8 +51,8 @@ def route_after_qa(state):
     if state["test_result"] == "fail":
         attempts = state.get("attempts", 0)
 
-        if attempts < 4:
-            print(f"├─ [ROUTER] 🔄 QA → DEV (retry {attempts}/4)")
+        if attempts < MAX_QA_ATTEMPTS:
+            print(f"├─ [ROUTER] 🔄 QA → DEV (retry {attempts}/{MAX_QA_ATTEMPTS})")
             return "dev"
 
         print("├─ [ROUTER] 🛑 QA → BUILD_APPROVAL (max retries reached)")
@@ -64,8 +64,8 @@ def route_after_qa(state):
 def route_after_ast(state):
     if state.get("ast_result") == "fail":
         attempts = state.get("attempts", 0)
-        if attempts < 4:
-            print(f"├─ [ROUTER] 🔄 AST → DEV (retry {attempts}/4)")
+        if attempts < MAX_AST_ATTEMPTS:
+            print(f"├─ [ROUTER] 🔄 AST → DEV (retry {attempts}/{MAX_QA_ATTEMPTS})")
             return "dev"
         print("├─ [ROUTER] 🛑 AST → BUILD_APPROVAL (max retries reached)")
         return "build_approval"
@@ -76,8 +76,8 @@ def route_after_ast(state):
 def route_after_auditor(state):
     if state.get("auditor_result") == "fail":
         attempts = state.get("attempts", 0)
-        if attempts < 10:
-            print(f"├─ [ROUTER] 🔄 AUDITOR → DEV (retry {attempts}/10)")
+        if attempts < MAX_AUDITOR_ATTEMPTS:
+            print(f"├─ [ROUTER] 🔄 AUDITOR → DEV (retry {attempts}/{MAX_AUDITOR_ATTEMPTS})")
             return "dev"
         print("├─ [ROUTER] 🛑 AUDITOR → BUILD_APPROVAL (max retries reached)")
         return "build_approval"
@@ -170,7 +170,7 @@ def build_graph(checkpointer=None):
         attempts = (state.get("attempts") or 0) + 1
         logs = log_event(state, "│")
         attempt_label = "Initial Build" if attempts == 1 else f"Retry {attempts-1}"
-        logs = log_event({**state, **logs}, f"├─ [QA] 🧪 Started — validating {attempt_label} (Attempt {attempts}/4)...")
+        logs = log_event({**state, **logs}, f"├─ [QA] 🧪 Started — validating {attempt_label} (Attempt {attempts}/{MAX_AST_ATTEMPTS})...")
         return {"logs": logs["logs"]}
 
     def pre_review(state):
