@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 from app.tools.workspace_registry import register_app
+from app.core.constants import WORKSPACE_DIR
 
 def slugify(text: str) -> str:
     """Convert arbitrary text into a clean alphanumeric slug (no special chars)."""
@@ -60,7 +61,7 @@ def customize_file_content(filepath: str, metadata: dict):
     except Exception as e:
         print(f"├─ [CUSTOMIZER] ⚠️ Failed to customize {filepath}: {e}")
 
-def seed_custom_workspace(idea: str, target_workspace: str = "workspace"):
+def seed_custom_workspace(idea: str, target_workspace: str = WORKSPACE_DIR):
     """
     Copy KMP Golden Template files to the target workspace and customize them
     according to the dynamic project requirements generated from the user's idea.

@@ -1,6 +1,7 @@
 import os
 import subprocess
 from app.core.llm import call_llm
+from app.core.constants import DEFAULT_MODEL_SMART, DEFAULT_MODEL_FAST
 from app.tools.github_integration import file_github_issue
 from github import Github
 from app.core.config import settings
@@ -43,7 +44,7 @@ def meta_fixer_agent(exception_traceback: str, failed_file_path: str):
     
     try:
         print("├─ [META-FIXER] 🧠 Generating patch via gpt-4o...")
-        fixed_content = call_llm(prompt, max_tokens=4000, model_name="gpt-4o").strip()
+        fixed_content = call_llm(prompt, max_tokens=4000, model_name=DEFAULT_MODEL_SMART).strip()
         
         if fixed_content.startswith("```python"):
             fixed_content = fixed_content[9:]

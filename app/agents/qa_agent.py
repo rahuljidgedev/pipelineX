@@ -1,4 +1,5 @@
 from app.tools.file_saver import save_files
+from app.core.constants import DEFAULT_MODEL_SMART, DEFAULT_MODEL_FAST, WORKSPACE_DIR
 from app.core.logger import log_event
 from app.telemetry.factory_logger import emit_factory_event
 from app.telemetry.translator import translate_to_domino_ticker
@@ -70,7 +71,7 @@ def qa_agent(state):
 
     from app.tools.android_builder import run_gradle_build, run_static_analysis, cleanup_workspace
     
-    project_path = "workspace"
+    project_path = WORKSPACE_DIR
     
     # --- 1. Static Analysis Check (ktlint & detekt) ---
     print(f"├─ [QA_DEBUG] Running Static Analysis in {project_path}...")
@@ -141,7 +142,7 @@ def qa_agent(state):
                         lessons.append({
                             "lesson": lesson_text,
                             "domain": "Android/KMP",
-                            "model": "gpt-4o", # Default fallback, though we could pull from state config
+                            "model": DEFAULT_MODEL_SMART, # Default fallback, though we could pull from state config
                             "error_signature": error_sig,
                             "timestamp": datetime.now(timezone.utc).isoformat()
                         })

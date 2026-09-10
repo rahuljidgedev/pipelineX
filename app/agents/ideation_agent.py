@@ -1,6 +1,7 @@
 import json
 import re
 from app.core.llm import call_llm
+from app.core.constants import DEFAULT_MODEL_SMART, DEFAULT_MODEL_FAST
 from app.core.logger import log_event
 from app.telemetry.factory_logger import emit_factory_event
 from app.telemetry.translator import translate_to_domino_ticker
@@ -65,7 +66,7 @@ Return strictly a single valid JSON block enclosed in ```json ... ``` with no co
 """
 
     try:
-        response = call_llm(prompt, max_tokens=1000, model_name="gpt-4o-mini")
+        response = call_llm(prompt, max_tokens=1000, model_name=DEFAULT_MODEL_FAST)
         
         match = re.search(r'```json\n(.*?)\n```', response, re.DOTALL)
         if match:

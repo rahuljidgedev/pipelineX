@@ -1,6 +1,7 @@
 import os
 import shutil
 from app.core.logger import log_event
+from app.core.constants import WORKSPACE_DIR
 from app.telemetry.factory_logger import emit_factory_event
 
 def packaging_node(state: dict) -> dict:
@@ -24,8 +25,8 @@ def packaging_node(state: dict) -> dict:
         logs = log_event({**state, **logs}, f"├─ [PACKAGING] ❌ {error_msg}")
         return {"packaging_result": "fail", "logs": logs["logs"]}
 
-    project_dir = os.path.join(os.getcwd(), "workspace", "apps", target_app_id)
-    release_zip = os.path.join(os.getcwd(), "workspace", "apps", f"{target_app_id}_release")
+    project_dir = os.path.join(os.getcwd(), WORKSPACE_DIR, "apps", target_app_id)
+    release_zip = os.path.join(os.getcwd(), WORKSPACE_DIR, "apps", f"{target_app_id}_release")
 
     if not os.path.exists(project_dir):
         logs = log_event({**state, **logs}, f"├─ [PACKAGING] ❌ Source directory {project_dir} does not exist.")

@@ -4,6 +4,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from app.graph.main_graph import build_graph
+from app.core.constants import WORKSPACE_DIR
 from app.telemetry.event_bus import domino_event_bus
 from langgraph.types import Command
 import os
@@ -152,7 +153,7 @@ def download_app(name: str = "web_app"):
     if not safe_name:
         safe_name = "web_app"
         
-    workspace_dir = "workspace"
+    workspace_dir = WORKSPACE_DIR
     zip_path = f"artifacts/{safe_name}"
     
     if not os.path.exists(workspace_dir):

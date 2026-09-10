@@ -1,4 +1,5 @@
 from app.tools.code_indexer import KotlinCodeIndexer
+from app.core.constants import WORKSPACE_DIR
 from app.telemetry.factory_logger import emit_factory_event
 from app.telemetry.translator import translate_to_domino_ticker
 import os
@@ -21,7 +22,7 @@ def repo_context_agent(state):
         print("├─ [RAG] ⚠️ No target_app_id found. Skipping context extraction.")
         return {"impacted_files": []}
         
-    project_path = os.path.join(os.getcwd(), "workspace", "apps", target_app_id)
+    project_path = os.path.join(os.getcwd(), WORKSPACE_DIR, "apps", target_app_id)
     if not os.path.exists(project_path):
         print(f"├─ [RAG] ⚠️ Project path {project_path} does not exist.")
         return {"impacted_files": []}

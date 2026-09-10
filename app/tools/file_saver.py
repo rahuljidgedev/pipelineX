@@ -1,9 +1,10 @@
+from app.core.constants import WORKSPACE_DIR
 import os
 import re
 import shutil
 
 
-def clear_workspace(base_path: str = "workspace"):
+def clear_workspace(base_path: str = WORKSPACE_DIR):
     """Remove all files and directories in the workspace."""
     if os.path.exists(base_path):
         for filename in os.listdir(base_path):
@@ -80,7 +81,7 @@ def apply_patch(file_path: str, search_content: str, replace_content: str) -> bo
         return False
 
 
-def save_files(code_output: str, base_path: str = "workspace"):
+def save_files(code_output: str, base_path: str = WORKSPACE_DIR):
     """Parse LLM output with FILE: markers and save or patch each file."""
     # Ensure workspace exists
     os.makedirs(base_path, exist_ok=True)

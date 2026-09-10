@@ -1,5 +1,6 @@
 import json
 from app.core.llm import call_llm
+from app.core.constants import DEFAULT_MODEL_SMART, DEFAULT_MODEL_FAST
 from app.core.logger import log_event
 from app.telemetry.factory_logger import emit_factory_event
 from app.telemetry.translator import translate_to_domino_ticker
@@ -71,7 +72,7 @@ def auditor_agent(state):
     """
     
     try:
-        response = call_llm(prompt, max_tokens=1500, model_name="gpt-4o-mini")
+        response = call_llm(prompt, max_tokens=1500, model_name=DEFAULT_MODEL_FAST)
     except Exception as e:
         error_msg = f"Auditor Agent LLM failed: {str(e)}"
         logs = log_event({**state, **logs}, f"├─ [AUDITOR] ❌ {error_msg}")
