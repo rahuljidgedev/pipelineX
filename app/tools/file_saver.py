@@ -11,6 +11,7 @@ def _enforce_kmp_imports(content: str, file_path: str) -> str:
     mandatory_imports = (
         "import androidx.compose.foundation.*\n"
         "import androidx.compose.foundation.layout.*\n"
+        "import androidx.compose.foundation.lazy.*\n"
         "import androidx.compose.ui.*\n"
         "import androidx.compose.material3.*\n"
         "import androidx.compose.runtime.*\n"
@@ -25,6 +26,7 @@ def _enforce_kmp_imports(content: str, file_path: str) -> str:
     
     # Strip existing compose imports to prevent "Conflicting import" errors
     content = re.sub(r'^import androidx\.compose\..*?\n', '', content, flags=re.MULTILINE)
+    content = re.sub(r'^// AUTO-INJECTED KMP IMPORTS\n', '', content, flags=re.MULTILINE)
     
     package_match = re.search(r'^package [^\n]+', content, re.MULTILINE)
     if package_match:
