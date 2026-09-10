@@ -353,13 +353,28 @@ async function rejectApproval() {
 // --- Build Approval ---
 
 function showBuildApproval(state) {
-    const qaResult = state.test_result || '—';
+    let finalStatus = state.test_result || '—';
+    if (state.ast_result === 'fail') {
+        finalStatus = 'ast_fail';
+    }
+    
     const attempts = state.attempts || 0;
     const review = state.review_result || 'No review available';
 
-    const qaEl = document.getElementById('qa-result');
-    qaEl.textContent = qaResult === 'pass' ? '✅ PASS' : qaResult === 'fail' ? '❌ FAIL' : qaResult;
-    qaEl.className = 'status-pill ' + (qaResult === 'pass' ? 'pass' : qaResult === 'fail' ? 'fail' : '');
+    const buildEl = document.getElementById('build-result');
+    if (finalStatus === 'pass') {
+        buildEl.textContent = '✅ QA PASS';
+        buildEl.className = 'status-pill pass';
+    } else if (finalStatus === 'fail') {
+        buildEl.textContent = '❌ QA FAIL';
+        buildEl.className = 'status-pill fail';
+    } else if (finalStatus === 'ast_fail') {
+        buildEl.textContent = '❌ AST FAIL';
+        buildEl.className = 'status-pill fail';
+    } else {
+        buildEl.textContent = finalStatus;
+        buildEl.className = 'status-pill';
+    }
 
     document.getElementById('build-attempts').textContent = `${attempts} / 4`;
     document.getElementById('review-content').textContent = review;
