@@ -1,6 +1,6 @@
 import os
 from app.core.llm import call_llm
-from app.core.constants import DEFAULT_MODEL_SMART, DEFAULT_MODEL_FAST, WORKSPACE_DIR
+from app.core.constants import DEFAULT_MODEL_SMART, DEFAULT_MODEL_FAST, WORKSPACE_DIR, LLM_MAX_TOKENS_MARKETING_LANDING, LLM_MAX_TOKENS_MARKETING_SOCIAL
 from app.core.logger import log_event
 from app.telemetry.factory_logger import emit_factory_event
 from app.telemetry.translator import translate_to_domino_ticker
@@ -46,7 +46,7 @@ PRD EXTRACT:
 
 Respond ONLY with the raw HTML code. Do not include markdown codeblocks (no ```html).
 """
-    landing_page_html = call_llm(landing_page_prompt, max_tokens=3000, model_name=DEFAULT_MODEL_FAST).strip()
+    landing_page_html = call_llm(landing_page_prompt, max_tokens=LLM_MAX_TOKENS_MARKETING_LANDING, model_name=DEFAULT_MODEL_FAST).strip()
     if landing_page_html.startswith("```html"):
         landing_page_html = landing_page_html[7:]
     if landing_page_html.endswith("```"):
@@ -65,7 +65,7 @@ Based on this app idea: "{idea}", write:
 
 Respond ONLY with the text of the posts.
 """
-    social_content = call_llm(social_prompt, max_tokens=1500, model_name=DEFAULT_MODEL_FAST).strip()
+    social_content = call_llm(social_prompt, max_tokens=LLM_MAX_TOKENS_MARKETING_SOCIAL, model_name=DEFAULT_MODEL_FAST).strip()
     
     with open(os.path.join(marketing_dir, "social_campaign.txt"), "w", encoding="utf-8") as f:
         f.write(social_content)

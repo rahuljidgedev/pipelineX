@@ -5,7 +5,7 @@ from app.core.logger import log_event
 from app.telemetry.factory_logger import emit_factory_event
 from app.telemetry.translator import translate_to_domino_ticker
 from app.tools.workspace_customizer import seed_custom_workspace, generate_project_metadata
-from app.core.constants import PipelineMode
+from app.core.constants import PipelineMode, LLM_MAX_TOKENS_DEV
 
 def dev_agent(state):
     error_logs = state.get("error_logs")
@@ -177,7 +177,7 @@ def dev_agent(state):
     # Increased tokens to 8000 for complete codebases (KMP is verbose)
     print(f"├─ [DEV_DEBUG] Calling LLM with prompt size: {len(prompt)} chars...")
     try:
-        code = call_llm(prompt, max_tokens=8000)
+        code = call_llm(prompt, max_tokens=LLM_MAX_TOKENS_DEV)
     except Exception as e:
         error_msg = f"Dev Agent LLM failed: {str(e)}"
         print(f"├─ [DEV] ❌ {error_msg}")

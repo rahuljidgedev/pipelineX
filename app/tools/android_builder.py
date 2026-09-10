@@ -1,3 +1,4 @@
+from app.core.constants import GRADLE_BUILD_TIMEOUT_SEC, JAVA_17_PATH, JAVA_JBR_PATH, JAVA_DEFAULT_FALLBACK, ANDROID_HOME_PATHS
 import subprocess
 import os
 import shutil
@@ -43,15 +44,15 @@ def run_gradle_build(project_path: str, app_id: str = None):
     env = os.environ.copy()
     
     # Priority: Java 17 -> Specific Android Studio JBR -> Fallback default
-    java_17_path = "/usr/lib/jvm/java-17-openjdk-amd64"
-    jbr_path = "/home/ekalpa/ide/android-studio-panda4/jbr"
+    java_17_path = JAVA_17_PATH
+    jbr_path = JAVA_JBR_PATH
     
     if os.path.exists(java_17_path):
         env["JAVA_HOME"] = java_17_path
     elif os.path.exists(jbr_path):
         env["JAVA_HOME"] = jbr_path
     elif "JAVA_HOME" not in env:
-        for candidate in ["/usr/lib/jvm/default-java"]:
+        for candidate in [JAVA_DEFAULT_FALLBACK]:
             if os.path.exists(candidate):
                 env["JAVA_HOME"] = candidate
                 break
@@ -72,7 +73,7 @@ def run_gradle_build(project_path: str, app_id: str = None):
             cwd=project_path,
             capture_output=True,
             text=True,
-            timeout=600, # Increased timeout for full builds
+            timeout=GRADLE_BUILD_TIMEOUT_SEC, # Increased timeout for full builds
             env=env
         )
 

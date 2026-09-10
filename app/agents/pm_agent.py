@@ -1,4 +1,5 @@
 from app.core.llm import call_llm
+from app.core.constants import LLM_MAX_TOKENS_PM
 from app.core.logger import log_event
 from app.telemetry.factory_logger import emit_factory_event
 from app.telemetry.translator import translate_to_domino_ticker
@@ -59,7 +60,7 @@ def pm_agent(state):
 
     try:
         # Increased tokens to 3000 for a full document
-        response = call_llm(prompt, max_tokens=3000)
+        response = call_llm(prompt, max_tokens=LLM_MAX_TOKENS_PM)
     except Exception as e:
         error_msg = f"PM Agent failed: {str(e)}"
         logs = log_event(state, f"├─ [PM] ❌ {error_msg}")

@@ -1,7 +1,7 @@
 from openai import OpenAI
 from google import genai
 from app.core.config import settings
-from app.core.constants import DEFAULT_MODEL_SMART, DEFAULT_MODEL_FAST
+from app.core.constants import DEFAULT_MODEL_SMART, DEFAULT_MODEL_FAST, LLM_MAX_TOKENS_DEFAULT
 import os
 import requests
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
@@ -25,7 +25,7 @@ elif provider == "gemini":
     wait=wait_exponential(multiplier=1, min=2, max=10),
     reraise=True
 )
-def call_llm(prompt: str, max_tokens: int = 1000, model_name: str = DEFAULT_MODEL_SMART) -> str:
+def call_llm(prompt: str, max_tokens: int = LLM_MAX_TOKENS_DEFAULT, model_name: str = DEFAULT_MODEL_SMART) -> str:
     try:
         if provider == "gemini":
             # Hardcoded to gemini-3.6-flash as instructed by the API deprecation error

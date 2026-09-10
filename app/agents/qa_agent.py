@@ -1,5 +1,5 @@
 from app.tools.file_saver import save_files
-from app.core.constants import DEFAULT_MODEL_SMART, DEFAULT_MODEL_FAST, WORKSPACE_DIR
+from app.core.constants import DEFAULT_MODEL_SMART, DEFAULT_MODEL_FAST, WORKSPACE_DIR, LLM_MAX_TOKENS_QA_REFLECTION
 from app.core.logger import log_event
 from app.telemetry.factory_logger import emit_factory_event
 from app.telemetry.translator import translate_to_domino_ticker
@@ -127,7 +127,7 @@ def qa_agent(state):
                 Output ONLY the 1-sentence rule. No conversational text.
                 """
                 try:
-                    lesson_text = call_llm(reflection_prompt, max_tokens=100).strip()
+                    lesson_text = call_llm(reflection_prompt, max_tokens=LLM_MAX_TOKENS_QA_REFLECTION).strip()
                     if lesson_text:
                         lessons_file = "app/resources/lessons_learned.json"
                         if os.path.exists(lessons_file):

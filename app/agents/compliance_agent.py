@@ -1,7 +1,7 @@
 import os
 import json
 from app.core.logger import log_event
-from app.core.constants import DEFAULT_MODEL_SMART, DEFAULT_MODEL_FAST, WORKSPACE_DIR
+from app.core.constants import DEFAULT_MODEL_SMART, DEFAULT_MODEL_FAST, WORKSPACE_DIR, LLM_MAX_TOKENS_COMPLIANCE_FULL, LLM_MAX_TOKENS_COMPLIANCE_SHORT
 from app.telemetry.factory_logger import emit_factory_event
 from app.core.llm import call_llm
 
@@ -32,7 +32,7 @@ def compliance_agent(state):
     short_desc_path = os.path.join(metadata_dir, "short_description.txt")
     if not os.path.exists(short_desc_path) or os.path.getsize(short_desc_path) == 0:
         logs = log_event({**state, **logs}, "├─ [COMPLIANCE] ⚠️ Missing short description. Generating...")
-        short_desc = call_llm(f"Generate a compelling Google Play Store short description (max 80 chars) for this app idea: {idea}", max_tokens=100, model_name=DEFAULT_MODEL_FAST).strip()
+        short_desc = call_llm(f"Generate a compelling Google Play Store short description (max 80 chars) for this app idea: {idea}", max_tokens=LLM_MAX_TOKENS_COMPLIANCE_SHORT, model_name=DEFAULT_MODEL_FAST).strip()
         with open(short_desc_path, "w") as f:
             f.write(short_desc[:80])
             
@@ -40,7 +40,7 @@ def compliance_agent(state):
     full_desc_path = os.path.join(metadata_dir, "full_description.txt")
     if not os.path.exists(full_desc_path) or os.path.getsize(full_desc_path) == 0:
         logs = log_event({**state, **logs}, "├─ [COMPLIANCE] ⚠️ Missing full description. Generating...")
-        full_desc = call_llm(f"Generate a compelling Google Play Store full description for this app idea: {idea}", max_tokens=1000, model_name=DEFAULT_MODEL_FAST).strip()
+        full_desc = call_llm(f"Generate a compelling Google Play Store full description for this app idea: {idea}", max_tokens=LLM_MAX_TOKENS_COMPLIANCE_FULL, model_name=DEFAULT_MODEL_FAST).strip()
         with open(full_desc_path, "w") as f:
             f.write(full_desc)
             
@@ -48,7 +48,7 @@ def compliance_agent(state):
     title_path = os.path.join(metadata_dir, "title.txt")
     if not os.path.exists(title_path) or os.path.getsize(title_path) == 0:
         logs = log_event({**state, **logs}, "├─ [COMPLIANCE] ⚠️ Missing title. Generating...")
-        title = call_llm(f"Generate a short, catchy title (max 30 chars) for this app idea: {idea}", max_tokens=50, model_name=DEFAULT_MODEL_FAST).strip()
+        title = call_llm(f"Generate a short, catchy title (max 30 chars) for this app idea: {idea}", max_tokens=LLM_MAX_TOKENS_COMPLIANCE_SHORT, model_name=DEFAULT_MODEL_FAST).strip()
         with open(title_path, "w") as f:
             f.write(title[:30])
             
@@ -56,7 +56,7 @@ def compliance_agent(state):
     privacy_policy_path = os.path.join(project_path, "PrivacyPolicy.txt")
     if not os.path.exists(privacy_policy_path) or os.path.getsize(privacy_policy_path) == 0:
         logs = log_event({**state, **logs}, "├─ [COMPLIANCE] ⚠️ Missing Privacy Policy. Generating standard template...")
-        privacy_policy = call_llm(f"Generate a standard generic privacy policy for an Android app based on this idea: {idea}", max_tokens=1000, model_name=DEFAULT_MODEL_FAST).strip()
+        privacy_policy = call_llm(f"Generate a standard generic privacy policy for an Android app based on this idea: {idea}", max_tokens=LLM_MAX_TOKENS_COMPLIANCE_FULL, model_name=DEFAULT_MODEL_FAST).strip()
         with open(privacy_policy_path, "w") as f:
             f.write(privacy_policy)
             

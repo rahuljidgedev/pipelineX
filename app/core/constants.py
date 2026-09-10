@@ -14,3 +14,33 @@ DEFAULT_MODEL_FAST = 'gpt-4o-mini'
 
 # Paths
 WORKSPACE_DIR = 'workspace'
+
+# LLM Token Limits
+LLM_MAX_TOKENS_DEFAULT = 1000
+LLM_MAX_TOKENS_DEV = 8000
+LLM_MAX_TOKENS_PM = 3000
+LLM_MAX_TOKENS_MARKETING_LANDING = 3000
+LLM_MAX_TOKENS_MARKETING_SOCIAL = 1500
+LLM_MAX_TOKENS_COMPLIANCE_FULL = 1000
+LLM_MAX_TOKENS_COMPLIANCE_SHORT = 100
+LLM_MAX_TOKENS_META_FIX = 4000
+LLM_MAX_TOKENS_AUDITOR = 1500
+LLM_MAX_TOKENS_QA_REFLECTION = 100
+
+# System Paths & Fallbacks
+JAVA_17_PATH = "/usr/lib/jvm/java-17-openjdk-amd64"
+JAVA_JBR_PATH = "/home/ekalpa/ide/android-studio-panda4/jbr"
+JAVA_DEFAULT_FALLBACK = "/usr/lib/jvm/default-java"
+
+ANDROID_HOME_PATHS = [
+    "~/Android/Sdk",
+    "/usr/local/lib/android/sdk",
+    "/home/ekalpa/Android/Sdk"
+]
+
+# Builder Config
+GRADLE_BUILD_TIMEOUT_SEC = 600
+
+# API Config
+API_DEFAULT_PORT = 8000
+API_DEFAULT_HOST = "0.0.0.0"
