@@ -53,5 +53,5 @@ GRADLE_TEMPLATE_DIR = "app/resources/gradle_template"
 KMP_GOLDEN_TEMPLATE_DIR = "app/resources/kmp_golden_template"
 
 # Package Defaults
-DEFAULT_PACKAGE_PREFIX = "com.example."
+DEFAULT_PACKAGE_PREFIX = "com.softwarefactory."
 DEFAULT_APP_TITLE = "KMP Application"

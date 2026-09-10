@@ -3,6 +3,35 @@ import os
 import re
 import shutil
 
+def _enforce_kmp_imports(content: str, file_path: str) -> str:
+    if not file_path.endswith(".kt"):
+        return content
+    if "@Composable" not in content and "androidx.compose" not in content:
+        return content
+    mandatory_imports = (
+        "import androidx.compose.foundation.*\n"
+        "import androidx.compose.foundation.layout.*\n"
+        "import androidx.compose.ui.*\n"
+        "import androidx.compose.material3.*\n"
+        "import androidx.compose.runtime.*\n"
+        "import androidx.compose.ui.unit.*\n"
+        "import androidx.compose.ui.graphics.*\n"
+        "import androidx.compose.ui.text.*\n"
+        "import androidx.compose.ui.text.style.*\n"
+        "import androidx.compose.ui.text.font.*\n"
+        "import androidx.compose.material.icons.Icons\n"
+        "import androidx.compose.material.icons.filled.*\n"
+    )
+    
+    # Strip existing compose imports to prevent "Conflicting import" errors
+    content = re.sub(r'^import androidx\.compose\..*?\n', '', content, flags=re.MULTILINE)
+    
+    package_match = re.search(r'^package [^\n]+', content, re.MULTILINE)
+    if package_match:
+        insert_pos = package_match.end()
+        return content[:insert_pos] + "\n\n// AUTO-INJECTED KMP IMPORTS\n" + mandatory_imports + content[insert_pos:]
+    return content
+
 
 def clear_workspace(base_path: str = WORKSPACE_DIR):
     """Remove all files and directories in the workspace."""
@@ -71,6 +100,8 @@ def apply_patch(file_path: str, search_content: str, replace_content: str) -> bo
         else:
             content_std = content_std.replace(search_std, replace_std, 1)
             
+        content_std = _enforce_kmp_imports(content_std, file_path)
+            
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content_std)
             
@@ -130,6 +161,8 @@ def save_files(code_output: str, base_path: str = WORKSPACE_DIR):
             match = re.search(r'```(?:\w+)?\n?(.*?)\n?```', content, re.DOTALL)
             if match:
                 content = match.group(1).strip()
+                
+            content = _enforce_kmp_imports(content, raw_path)
             
             full_path = os.path.join(base_path, raw_path)
             os.makedirs(os.path.dirname(full_path), exist_ok=True)
@@ -174,7 +207,9 @@ def save_files(code_output: str, base_path: str = WORKSPACE_DIR):
                 
                 full_path = os.path.join(base_path, raw_path)
                 os.makedirs(os.path.dirname(full_path), exist_ok=True)
-                with open(full_path, "w") as f: 
+                # Fallback for full file block in regex
+                content_str = _enforce_kmp_imports(content_str, raw_path)
+                with open(full_path, "w") as f:
                     f.write(content_str)
                 saved_files.append(raw_path)
 

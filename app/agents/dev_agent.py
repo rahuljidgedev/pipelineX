@@ -55,6 +55,25 @@ def dev_agent(state):
     ```
     """
 
+    IMPORT_RULES = """
+    - MANDATORY IMPORT RULES (Common mistakes to avoid):
+      - CRITICAL MATERIAL 3 TYPOGRAPHY: Material 3 uses `bodyLarge`, `bodyMedium`, `titleLarge`, `labelSmall`, etc. NEVER use Material 2 typography names like `body1`, `body2`, `h1`, `h2`, `subtitle1`, or `button`.
+      - You MUST USE WILDCARD IMPORTS for core Compose UI packages to avoid unresolved reference errors.
+      - Always include these EXACTLY at the top of your UI files:
+        import androidx.compose.foundation.layout.*
+        import androidx.compose.ui.*
+        import androidx.compose.material3.*
+        import androidx.compose.runtime.*
+        import androidx.compose.ui.unit.*
+        import androidx.compose.ui.graphics.*
+        import androidx.compose.material.icons.Icons
+        import androidx.compose.material.icons.filled.*
+      - Do NOT import Android-specific classes (e.g., `android.graphics.Color` or `android.util.Log`) in commonMain code.
+      - CRITICAL DROPDOWN MENU FIX: In Material 3, `DropdownMenuItem` does NOT take a trailing lambda. You MUST use the `text` parameter. Correct: `DropdownMenuItem(text = { Text("Item") }, onClick = { ... })`. Incorrect: `DropdownMenuItem(onClick = { ... }) { Text("Item") }`.
+      - CRITICAL TEXTFIELD FIX: NEVER use `BasicTextField`. You MUST use `androidx.compose.material3.TextField` or `androidx.compose.material3.OutlinedTextField`. `BasicTextField` causes `@Composable` context errors with `decorationBox`.
+    """
+
+
     lessons_block = ""
     lessons_file = LESSONS_LEARNED_FILE
     if os.path.exists(lessons_file):
@@ -89,8 +108,10 @@ def dev_agent(state):
 
         MANDATORY INSTRUCTIONS:
         1. DO NOT output the entire file from scratch.
-        2. Output ONLY the targeted modifications using this exact patch format:
+        2. Output ONLY the targeted modifications using this exact patch format.
+        3. YOU MUST prefix every patch with EXACTLY `FILE: path/to/file` on a new line!
 
+        Example:
         FILE: apps/{target_app_id}/src/commonMain/kotlin/App.kt
         <<<< SEARCH
         ...exact snippet of original code to replace...
@@ -100,8 +121,9 @@ def dev_agent(state):
 
         RULES:
         - The SEARCH block must match the existing code character-for-character, including indentation.
-        - Never use wildcard imports. Specify explicit imports for each class.
         - Do not touch locked buildscripts or manifests.
+        
+        {IMPORT_RULES}
         """
     else:
         prompt = f"""
@@ -134,35 +156,13 @@ def dev_agent(state):
           2. apps/{target_app_id}/src/commonMain/kotlin/ui/ or apps/{target_app_id}/src/commonMain/kotlin/data/
         - MANDATORY: All source code must be complete, functional, and compilable. Do not truncate.
         - MANDATORY: The main root composable in App.kt MUST be named `App()` because MainActivity explicitly calls it.
-        - MANDATORY: You MUST use `package {package_name}` at the top of App.kt.
+        - MANDATORY: You MUST use `package {package_name}` as the base package for all files. For files in subfolders, append the folder name as the last identifier (e.g., `package {package_name}.ui`).
         - MANDATORY: DO NOT use `@Preview` or `androidx.compose.ui.tooling.preview.Preview` in commonMain code.
         - CRITICAL MANDATORY RULE: NO PLACEHOLDERS ALLOWED. You will instantly fail if you write comments like `// Placeholder for...` or `Text("UI goes here")` or `// TODO`. YOU MUST write the ACTUAL, complete Compose UI code (using TextField, Button, LazyColumn, DropdownMenu, Checkbox, etc.) for EVERY SINGLE requirement in the PRD. Write the full forms and layouts!
         - Ensure the UI is premium using Compose Multiplatform with modern visual aesthetics.
         - NO WEB FILES (No .html, .js, .css).
         
-        - MANDATORY IMPORT RULES (Common mistakes to avoid):
-          - NEVER USE WILDCARD IMPORTS (e.g. `import androidx.compose.foundation.layout.*`). The static analysis engine (ktlint) will immediately fail your build and reject your code.
-          - Because wildcards are banned, you MUST explicitly import EVERY class you use. Do not forget to import `androidx.compose.ui.Modifier` and any specific `androidx.compose.material.icons.filled.*` icons (like `StarBorder`).
-          - For state delegation (e.g. `var count by remember { ... }`), you MUST explicitly import:
-            import androidx.compose.runtime.getValue
-            import androidx.compose.runtime.setValue
-            import androidx.compose.runtime.mutableStateOf
-            import androidx.compose.runtime.remember
-          - For Modifier extension functions (like `clickable`), you MUST explicitly import:
-            import androidx.compose.foundation.clickable
-          - For sizing units (like `dp`, `sp`), you MUST explicitly import:
-            import androidx.compose.ui.unit.dp
-            import androidx.compose.ui.unit.sp
-          - For Colors (like `Color.Blue`, custom hex colors), you MUST explicitly import:
-            import androidx.compose.ui.graphics.Color
-          - For standard Material icons, you MUST explicitly import:
-            import androidx.compose.material.icons.Icons
-            import androidx.compose.material.icons.filled.Add
-            import androidx.compose.material.icons.filled.Delete
-            import androidx.compose.material.icons.filled.Refresh (or any specific icons you use)
-          - Do NOT import Android-specific classes (e.g., `android.graphics.Color` or `android.util.Log`) in commonMain code.
-          - CRITICAL DROPDOWN MENU FIX: In Material 3, `DropdownMenuItem` does NOT take a trailing lambda. You MUST use the `text` parameter. Correct: `DropdownMenuItem(text = {{ Text("Item") }}, onClick = {{ ... }})`. Incorrect: `DropdownMenuItem(onClick = {{ ... }}) {{ Text("Item") }}`.
-          - CRITICAL TEXTFIELD FIX: NEVER use `BasicTextField`. You MUST use `androidx.compose.material3.TextField` or `androidx.compose.material3.OutlinedTextField`. `BasicTextField` causes `@Composable` context errors with `decorationBox`.
+        {IMPORT_RULES}
         
         ---
         REQUIRED FILE CHECKLIST (Generate and implement these files):

@@ -361,7 +361,7 @@ function showBuildApproval(state) {
     qaEl.textContent = qaResult === 'pass' ? '✅ PASS' : qaResult === 'fail' ? '❌ FAIL' : qaResult;
     qaEl.className = 'status-pill ' + (qaResult === 'pass' ? 'pass' : qaResult === 'fail' ? 'fail' : '');
 
-    document.getElementById('build-attempts').textContent = `${attempts} / 3`;
+    document.getElementById('build-attempts').textContent = `${attempts} / 4`;
     document.getElementById('review-content').textContent = review;
 
     const btnApprove = document.getElementById('btn-build-approve');
