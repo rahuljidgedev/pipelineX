@@ -1,5 +1,11 @@
 # PipelineX 🚀
 
+[![License](https://img.shields.io/github/license/rahuljidgedev/pipelineX?style=flat-square&color=blue)](https://github.com/rahuljidgedev/pipelineX/blob/main/LICENSE)
+[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue?style=flat-square)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Kotlin Multiplatform](https://img.shields.io/badge/KMP-7F52FF?style=flat-square&logo=kotlin)](https://kotlinlang.org/docs/multiplatform.html)
+[![Last Commit](https://img.shields.io/github/last-commit/rahuljidgedev/pipelineX?style=flat-square)](https://github.com/rahuljidgedev/pipelineX/commits/main)
+
 **Generative AI for Kotlin Multiplatform (KMP)**
 
 PipelineX is an autonomous, multi-agent AI pipeline designed to generate, validate, and iteratively refine full Kotlin Multiplatform (KMP) mobile applications from a simple prompt.
